@@ -1,0 +1,41 @@
+/* Dark Theme Styling */
+.pdf-container {
+    display: flex;
+    height: 100vh;
+    background: #121212;
+    color: white;
+}
+
+.pdf-viewer {
+    flex: 2;
+    padding: 20px;
+    border-right: 2px solid #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.pdf-options {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+button {
+    background: #646cff;
+    color: white;
+    border: none;
+    padding: 10px;
+    margin: 10px;
+    cursor: pointer;
+    width: 80%;
+    border-radius: 5px;
+}
+
+button:hover {
+    background: #535bf2;
+}
