@@ -1,0 +1,190 @@
+/******************************
+  NAVBAR
+*******************************/
+.navbar {
+  background: linear-gradient(90deg, #000000 0%, #000000 100%);
+  height: 80px;
+  display: flex;
+  align-items: center;
+  font-size: 1.2rem;
+  position: relative;
+  z-index: 10;
+}
+
+/* LOGO */
+.navbar-logo {
+  color: #fff;
+  margin-left: 20px;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  white-space: nowrap; /* Prevents text from wrapping */
+}
+.navbar-logo i {
+  margin-left: 0.5rem;
+  font-size: 1.6rem;
+}
+
+.nav-logo-img {
+  width: 50px;             
+  height: 50px;
+  object-fit: cover;       /* ensures the image doesn't get skewed */
+  border-radius: 50%;     
+  margin-right: 8px;       
+}
+
+/******************************
+  MENU ICON (MOBILE)
+*******************************/
+.menu-icon {
+  display: none;
+  cursor: pointer;
+}
+.fa-bars,
+.fa-times {
+  color: #fff;
+  font-size: 1.8rem;
+}
+
+/******************************
+  NAV MENU (DESKTOP)
+*******************************/
+.nav-menu {
+  display: grid;
+  grid-template-columns: repeat(5, auto);
+  grid-gap: 10px;
+  list-style: none;
+  text-align: center;
+  width: 60vw;
+  justify-content: end;
+  margin-right: 2rem;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  height: 80px;
+}
+.nav-links {
+  color: #fff;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  transition: background-color 0.2s ease;
+}
+.nav-links:hover {
+  background-color: #10258f;
+  border-radius: 4px;
+}
+
+/******************************
+  NAV RIGHT ITEMS (SEARCH, ETC)
+*******************************/
+.nav-right-items {
+  margin-right: 20px;
+  display: flex;
+  align-items: center;
+}
+.nav-search {
+  position: relative;
+  border: #fff;
+}
+.nav-search input {
+  padding: 8px 14px 8px 8px;
+  border: 1px solid white;
+  border-radius: 8px;
+  outline: none;
+}
+.nav-search input:focus + i {
+  display: none;
+}
+.nav-search i {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #555;
+  cursor: pointer;
+}
+
+/******************************
+  MOBILE MENU
+*******************************/
+.nav-links-mobile {
+  display: none;
+}
+
+/* Hide the button or other items on mobile if you want */
+.nav-btn {
+  background-color: #10258f;
+  color: #fff;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  margin-left: 10px;
+  cursor: pointer;
+}
+
+/******************************
+  MEDIA QUERIES
+*******************************/
+@media screen and (max-width: 960px) {
+  .menu-icon {
+    display: block;
+    position: absolute;
+    right: 20px;
+    top: 22px;
+  }
+
+  .nav-menu {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100vh; /* Full screen */
+    position: absolute;
+    top: 80px;
+    left: -100%;
+    opacity: 1;
+    transition: all 0.5s ease;
+    background: #000000;
+    z-index: 999;
+  }
+
+  .nav-menu.active {
+    left: 0;
+  }
+
+  .nav-item {
+    height: 60px;
+  }
+
+  .nav-links {
+    text-align: center;
+    padding: 2rem;
+    width: 100%;
+    display: table;
+  }
+
+  /* MOBILE-ONLY LINK */
+  .nav-links-mobile {
+    display: block;
+    text-align: center;
+    padding: 2rem;
+    margin: 2rem auto;
+    border-radius: 4px;
+    width: 80%;
+    background: #10258f;
+    color: #fff;
+    font-size: 1.5rem;
+    text-decoration: none;
+  }
+  .nav-links-mobile:hover {
+    background: #fff;
+    color: #10258f;
+    transition: 0.3s;
+  }
+
+  .nav-right-items {
+    display: none; /* Hide search or button on mobile, or adapt it */
+  }
+}
