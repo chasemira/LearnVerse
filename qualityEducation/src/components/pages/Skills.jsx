@@ -12,6 +12,7 @@ const SkillTradingPost = ({ offer, request, image }) => (
 const SkillTradeModal = ({ isOpen, onClose, onSubmit }) => {
   const [offer, setOffer] = useState('');
   const [request, setRequest] = useState('');
+  const [description, setDescription] = useState('');
   const [image, setImage] = useState('');
 
   const handleSubmit = () => {
@@ -37,6 +38,13 @@ const SkillTradeModal = ({ isOpen, onClose, onSubmit }) => {
           onChange={(e) => setRequest(e.target.value)}
           className="modal-input"
         />
+
+        <textarea
+          placeholder="Description (optional)"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className="modal-textarea"
+        />
         <input
           type="text"
           placeholder="Image URL (optional)"
@@ -55,8 +63,8 @@ const SkillTradeModal = ({ isOpen, onClose, onSubmit }) => {
 
 export default function Skills() {
   const [posts, setPosts] = useState([
-    { offer: 'Math Tutoring', request: 'Crochet Lessons', image: '' },
-    { offer: 'Guitar Lessons', request: 'French Practice', image: '' },
+    { offer: 'Math Tutoring', description: 'Lorem ipsum' , request: 'Crochet Lessons', image: '' },
+    { offer: 'Guitar Lessons', description: 'Lorem ipsum' , request: 'French Practice', image: '' },
   ]);
   const [search, setSearch] = useState('');
   const [isModalOpen, setModalOpen] = useState(false);
@@ -71,19 +79,24 @@ export default function Skills() {
 
   return (
     <div className="skills-container">
-      <h1 className="skills-heading">Skill Trading Marketplace</h1>
-      <input
-        type="text"
-        placeholder="Search for a skill..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="skills-input"
-      />
+      <div className="heading-container">
+        <h1 className="skills-heading">Skill Trading Marketplace</h1>
+        <div className="skills-search-container">
+          <input
+            type="text"
+            placeholder="Search for a skill..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="skills-input"
+          />
+        </div>
+      </div>
+      
       <button
         onClick={() => setModalOpen(true)}
-        className="skills-button"
+        className="fab"
       >
-        Post a Skill Trade
+        +
       </button>
       <div className="skills-grid">
         {filteredPosts.map((post, index) => (
