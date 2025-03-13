@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import './Skills.css';
 
-const SkillTradingPost = ({ offer, request, image }) => (
-  <div className="skills-card">
+const SkillTradingPost = ({ offer, request, image, onClick }) => (
+  <div className="skills-card" onClick={onClick}>
     {image && <img src={image} alt="Skill Example" className="skills-image" />}
     <h2 className="font-bold text-lg">Offering: {offer}</h2>
     <p className="text-sm">Looking for: {request}</p>
@@ -16,7 +16,7 @@ const SkillTradeModal = ({ isOpen, onClose, onSubmit }) => {
   const [image, setImage] = useState('');
 
   const handleSubmit = () => {
-    onSubmit({ offer, request, image });
+    onSubmit({ offer, request, description, image });
     onClose();
   };
 
@@ -38,7 +38,6 @@ const SkillTradeModal = ({ isOpen, onClose, onSubmit }) => {
           onChange={(e) => setRequest(e.target.value)}
           className="modal-input"
         />
-
         <textarea
           placeholder="Description (optional)"
           value={description}
@@ -61,13 +60,33 @@ const SkillTradeModal = ({ isOpen, onClose, onSubmit }) => {
   ) : null;
 };
 
+const SkillTradeInfoModal = ({ isOpen, onClose, post }) => {
+  return isOpen ? (
+    <div className="skill-trade-modal-overlay">
+      <div className="skill-trade-modal-content">
+        <h2 className="skill-trade-modal-heading">Skill Trade Details</h2>
+        <h3 className="font-bold text-lg">Offering: {post.offer}</h3>
+        <p className="text-sm">Looking for: {post.request}</p>
+        {post.description && <p className="skill-trade-modal-description">Description: {post.description}</p>}
+        {post.image && <img src={post.image} alt="Skill Example" className="skills-image" />}
+        <div className="skill-trade-modal-button-container">
+          <button onClick={onClose} className="skill-trade-modal-cancel-button">Close</button>
+          <button onClick={onClose} className="skill-trade-modal-submit-button">Accept</button>
+        </div>
+      </div>
+    </div>
+  ) : null;
+};
+
 export default function Skills() {
   const [posts, setPosts] = useState([
-    { offer: 'Math Tutoring', description: 'Lorem ipsum' , request: 'Crochet Lessons', image: '' },
-    { offer: 'Guitar Lessons', description: 'Lorem ipsum' , request: 'French Practice', image: '' },
+    { offer: 'Math Tutoring', description: 'Lorem ipsum', request: 'Crochet Lessons', image: '' },
+    { offer: 'Guitar Lessons', description: 'Lorem ipsum', request: 'French Practice', image: '' },
   ]);
   const [search, setSearch] = useState('');
   const [isModalOpen, setModalOpen] = useState(false);
+  const [isInfoModalOpen, setInfoModalOpen] = useState(false);
+  const [selectedPost, setSelectedPost] = useState(null);
 
   const filteredPosts = posts.filter(
     (post) =>
@@ -76,6 +95,11 @@ export default function Skills() {
   );
 
   const handleNewPost = (newPost) => setPosts([...posts, newPost]);
+
+  const handleCardClick = (post) => {
+    setSelectedPost(post);
+    setInfoModalOpen(true);
+  };
 
   return (
     <div className="skills-container">
@@ -100,13 +124,18 @@ export default function Skills() {
       </button>
       <div className="skills-grid">
         {filteredPosts.map((post, index) => (
-          <SkillTradingPost key={index} {...post} />
+          <SkillTradingPost key={index} {...post} onClick={() => handleCardClick(post)} />
         ))}
       </div>
       <SkillTradeModal
         isOpen={isModalOpen}
         onClose={() => setModalOpen(false)}
         onSubmit={handleNewPost}
+      />
+      <SkillTradeInfoModal
+        isOpen={isInfoModalOpen}
+        onClose={() => setInfoModalOpen(false)}
+        post={selectedPost}
       />
     </div>
   );
