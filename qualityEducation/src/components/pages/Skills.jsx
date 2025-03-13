@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Button, Input, Modal, Textarea } from '../ui';
+import './Skills.css';
 
 const SkillTradingPost = ({ offer, request, image }) => (
-  <div className="border rounded-2xl shadow-md p-4 flex flex-col items-center gap-2">
-    {image && <img src={image} alt="Skill Example" className="w-32 h-32 object-cover rounded-lg" />}
+  <div className="skills-card">
+    {image && <img src={image} alt="Skill Example" className="skills-image" />}
     <h2 className="font-bold text-lg">Offering: {offer}</h2>
     <p className="text-sm">Looking for: {request}</p>
   </div>
@@ -20,27 +20,33 @@ const SkillTradeModal = ({ isOpen, onClose, onSubmit }) => {
   };
 
   return isOpen ? (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-black p-6 rounded-2xl shadow-lg w-80">
-        <h2 className="text-xl font-bold mb-4">Create a Skill Trade Post</h2>
-        <Input
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <h2 className="modal-heading">Create a Skill Trade Post</h2>
+        <input
+          type="text"
           placeholder="What can you teach?"
           value={offer}
           onChange={(e) => setOffer(e.target.value)}
+          className="modal-input"
         />
-        <Input
+        <input
+          type="text"
           placeholder="What do you want to learn?"
           value={request}
           onChange={(e) => setRequest(e.target.value)}
+          className="modal-input"
         />
-        <Input
+        <input
+          type="text"
           placeholder="Image URL (optional)"
           value={image}
           onChange={(e) => setImage(e.target.value)}
+          className="modal-input"
         />
-        <div className="flex justify-end gap-2 mt-4">
-          <Button onClick={onClose} className="bg-gray-300">Cancel</Button>
-          <Button onClick={handleSubmit} className="bg-blue-500 text-white">Post</Button>
+        <div className="modal-button-container">
+          <button onClick={onClose} className="modal-cancel-button">Cancel</button>
+          <button onClick={handleSubmit} className="modal-submit-button">Post</button>
         </div>
       </div>
     </div>
@@ -64,16 +70,22 @@ export default function Skills() {
   const handleNewPost = (newPost) => setPosts([...posts, newPost]);
 
   return (
-    <div className="p-6">
-      <h1 className="text-4xl font-bold text-center mb-4">Skill Trading Marketplace</h1>
-      <Input
+    <div className="skills-container">
+      <h1 className="skills-heading">Skill Trading Marketplace</h1>
+      <input
+        type="text"
         placeholder="Search for a skill..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="w-1/2 mx-auto p-2 mb-4 border rounded-xl"
+        className="skills-input"
       />
-      <Button onClick={() => setModalOpen(true)} className="bg-green-500 text-white w-1/2 p-2 mb-4 rounded-xl">Post a Skill Trade</Button>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <button
+        onClick={() => setModalOpen(true)}
+        className="skills-button"
+      >
+        Post a Skill Trade
+      </button>
+      <div className="skills-grid">
         {filteredPosts.map((post, index) => (
           <SkillTradingPost key={index} {...post} />
         ))}
