@@ -5,7 +5,6 @@ import "pdfjs-dist/build/pdf.worker.entry";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import "./PDFConverter.css";
 
-// Set the correct PDF worker
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.0.279/pdf.worker.min.js`;
 
 function PDFConverter() {
