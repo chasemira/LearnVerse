@@ -13,11 +13,28 @@ const SkillTradeModal = ({ isOpen, onClose, onSubmit }) => {
   const [offer, setOffer] = useState('');
   const [request, setRequest] = useState('');
   const [description, setDescription] = useState('');
-  const [image, setImage] = useState('');
+  const [image, setImage] = useState(null);
+
+  const handleImageChange = (e) => {
+    setImage(e.target.files[0]);
+  };
 
   const handleSubmit = () => {
-    onSubmit({ offer, request, description, image });
-    onClose();
+    setOffer('');
+    setRequest('');
+    setDescription('');
+    setImage(null);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      onSubmit({ offer, request, description, image: reader.result });
+      onClose();
+    };
+    if (image) {
+      reader.readAsDataURL(image);
+    } else {
+      onSubmit({ offer, request, description, image: '' });
+      onClose();
+    }
   };
 
   return isOpen ? (
@@ -44,12 +61,15 @@ const SkillTradeModal = ({ isOpen, onClose, onSubmit }) => {
           onChange={(e) => setDescription(e.target.value)}
           className="modal-textarea"
         />
+        
+        <label htmlFor="image" className="modal-label">Upload an image (optional)</label>
+        <br />
+        <small className="modal-small">Accepted file types: .jpg, .jpeg, .png</small>
         <input
-          type="text"
-          placeholder="Image URL (optional)"
-          value={image}
-          onChange={(e) => setImage(e.target.value)}
-          className="modal-input"
+          type="file"
+          accept="image/*"
+          onChange={handleImageChange}
+          className="image-file-input"
         />
         <div className="modal-button-container">
           <button onClick={onClose} className="modal-cancel-button">Cancel</button>
