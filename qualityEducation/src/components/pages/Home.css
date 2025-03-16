@@ -1,0 +1,158 @@
+@import url('https://fonts.googleapis.com/css2?family=Rubik+Glitch&display=swap');
+
+* {
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ---------------------------IMAGE LOOP----------------------*/
+.images-loop {
+    overflow: hidden;
+    width: 100%;
+    position: relative;
+    padding: 30px 0;
+    margin-top: 10px;
+    border-radius: 4px;
+  }
+
+.image-container {
+    display: inline-block;
+    white-space: nowrap;
+    animation: scroll 40s linear infinite;
+    gap: 20px;
+  }
+  
+.image-container img {
+    display: inline-block;
+    margin-right: 10px;
+    margin-left: 15px;
+    height: 550px;
+    border-radius: 12px;
+    object-fit: cover;
+    filter: blur(3px);
+    opacity: 0.6;
+}
+
+  /* Remove right margin from the last image of the first set */
+.image-container img:nth-child(8) {
+    margin-right: 0;
+}
+  
+@keyframes scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+  
+
+/* ---------------------------OVERLAY TEXT----------------------*/
+.overlay-text {
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
+    color: white;
+    padding: 60px;
+    border-radius: 15px;
+    text-align: center;
+}
+
+.overlay-text h1 {
+    margin: 0;
+    font-size: 2.55rem;
+    font-family: 'Rubik Glitch', cursive;
+}
+
+.overlay-text p {
+    margin: 10px 0 0;
+    font-size: 1rem;
+}
+
+
+/* ---------------------------FLIP CARD----------------------*/
+.flip-card {
+    perspective: 3000px;
+}
+.card {
+    width: 360px;
+    height: 530px;
+    transform-style: preserve-3d;
+    transition: transform .8s ease-in-out;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    box-shadow: 5px 5px 10px rgb(255, 255, 255, 0.15), 5px 5px 10px rgb(255, 255, 255, 0.15);
+    border-radius: 15px;
+}
+.card:hover {
+    transform: rotateY(180deg);
+}
+.front-page,
+.back-page {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 15px;
+}
+.front-page {
+    /* background-image: url(img.jpg); */
+    background-image: url('./home-pics/img.jpg');
+    background-size: cover;
+}
+.card-info {
+    position: absolute;
+    bottom: 50px;
+    left: 45px;
+    color: white;
+    text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5);
+    text-align: center;
+}
+.card-title {
+    font-style: 2rem;
+    font-weight: bold;
+}
+.card-subtitle {
+    font-size: 1.2rem;
+    margin-top: 5px;
+    color: #522fff;
+}
+.back-page {
+    background-color: #1e272e;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transform: rotateY(180deg);
+    box-shadow: 0 20px 40px rgb(255, 255, 255, 0.15);
+}
+.card-content {
+    text-align: center;
+    padding: 20px;
+    max-width: 300px;
+}
+.card-content h3 {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+.card-description {
+    font-size: 1rem;
+    color: #ccc;
+    margin-bottom: 20px;
+    line-height: 1.6;
+}
+.card-button {
+    background-color: #522fff;
+    color: #fff;
+    padding: 12px 24px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}p
+.card-button:hover {
+    background-color: transparent;
+    color: #9b30ff;
+    border: 1px solid #9b30ff;
+}

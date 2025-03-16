@@ -26,13 +26,15 @@
   margin-left: 0.5rem;
   font-size: 1.6rem;
 }
-
+.navbar-logo:hover {
+  color: #522fff;
+}
 .nav-logo-img {
   width: 50px;             
   height: 50px;
   object-fit: cover;       /* ensures the image doesn't get skewed */
   border-radius: 50%;     
-  margin-right: 8px;       
+  margin-right: 8px;    
 }
 
 /******************************
@@ -73,8 +75,9 @@
   transition: background-color 0.2s ease;
 }
 .nav-links:hover {
-  background-color: #10258f;
+  background-color: #522fff;
   border-radius: 4px;
+  color: white;
 }
 
 /******************************
@@ -116,7 +119,7 @@
 
 /* Hide the button or other items on mobile if you want */
 .nav-btn {
-  background-color: #10258f;
+  background-color: #522fff;
   color: #fff;
   padding: 8px 16px;
   border: none;
@@ -173,14 +176,14 @@
     margin: 2rem auto;
     border-radius: 4px;
     width: 80%;
-    background: #10258f;
+    background: #522fff;
     color: #fff;
     font-size: 1.5rem;
     text-decoration: none;
   }
   .nav-links-mobile:hover {
     background: #fff;
-    color: #10258f;
+    color: #522fff;
     transition: 0.3s;
   }
 
