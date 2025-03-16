@@ -5,6 +5,13 @@
     box-sizing: border-box;
 }
 
+/* body {
+    background: linear-gradient(to top right, #170a29, #081e31);
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+} */
+
 /* ---------------------------IMAGE LOOP----------------------*/
 .images-loop {
     overflow: hidden;
@@ -18,7 +25,7 @@
 .image-container {
     display: inline-block;
     white-space: nowrap;
-    animation: scroll 40s linear infinite;
+    animation: scroll 60s linear infinite;
     gap: 20px;
   }
   
@@ -68,6 +75,13 @@
     font-size: 1rem;
 }
 
+/* ---------------------------RESOURCES----------------------*/
+.resources {
+    text-align: center;
+    font-size: 25px;
+    margin-top: 100px;
+    margin-bottom: 400px;
+}
 
 /* ---------------------------FLIP CARD----------------------*/
 .flip-card {

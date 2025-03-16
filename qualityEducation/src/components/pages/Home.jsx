@@ -39,6 +39,15 @@ export default function Home() {
         </div>
       </section>
 
+
+      {/* featured resources */}
+      <section>
+        <div class="resources">
+          <h2>Featured Resources</h2>
+        </div>
+      </section>
+
+
       {/* flip cards  */}
       <section className="flip-card">
         <div className="card">
