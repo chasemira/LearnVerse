@@ -147,6 +147,8 @@
     margin-bottom: 8px;
     border: 1px solid #ccc;
     border-radius: 8px;
+    background-color: white;
+    color: black;
   }
 
     /* Modal textarea styles */
@@ -156,6 +158,8 @@
         margin-bottom: 8px;
         border: 1px solid #ccc;
         border-radius: 8px;
+        background-color: white;
+        color: black;
     }
   
   /* Modal button container styles */
