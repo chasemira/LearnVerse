@@ -34,7 +34,7 @@ function Navbar() {
         {/* LOGO / BRAND */}
         <Link to="/" className="navbar-logo" onClick={closeMobileMenu}>
           <img src={logo} alt="logo" className="nav-logo-img" />
-          Quality Education Hub
+          LearnVerse
         </Link>
 
         {/* MOBILE MENU ICON */}
