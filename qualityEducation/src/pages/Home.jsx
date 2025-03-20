@@ -1,5 +1,4 @@
 import React from 'react';
-import '../../App.css';
 import './Home.css';
 import educImg1 from './home-pics/educ.jpg';
 import educImg2 from './home-pics/educ2.jpg';
