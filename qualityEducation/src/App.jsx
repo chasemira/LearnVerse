@@ -1,12 +1,12 @@
 import React from 'react';
 import Navbar from './components/Navbar';
 import './App.css';
-import Home from './components/pages/Home';
+import Home from './pages/Home';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Contact from './components/pages/Contact';
-import Community from './components/pages/Community';
-import Multilingual from './components/pages/Multilingual';
-import Skills from './components/pages/Skills';
+import Contact from './pages/Contact';
+import Community from './pages/Community';
+import Multilingual from './pages/Multilingual';
+import Skills from './pages/Skills';
 
 function App() {
   return (
