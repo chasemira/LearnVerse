@@ -54,14 +54,14 @@
   NAV MENU (DESKTOP)
 *******************************/
 .nav-menu {
-  display: grid;
-  grid-template-columns: repeat(5, auto);
-  grid-gap: 10px;
+  display: flex; /* Use flexbox for horizontal alignment */
   list-style: none;
   text-align: center;
-  width: 60vw;
-  justify-content: end;
-  margin-right: 2rem;
+  margin: 0;
+  padding: 0;
+  flex-grow: 1; /* Allow the menu to take up available space */
+  justify-content: flex-end; /* Align items to the right */
+  margin-right: 20px; /* Add spacing between the menu and the search bar */
 }
 .nav-item {
   display: flex;
@@ -84,9 +84,10 @@
   NAV RIGHT ITEMS (SEARCH, ETC)
 *******************************/
 .nav-right-items {
-  margin-right: 20px;
   display: flex;
   align-items: center;
+  justify-content: flex-end; /* Ensure the search bar stays on the far right */
+  margin-right: 20px;
 }
 .nav-search {
   position: relative;
