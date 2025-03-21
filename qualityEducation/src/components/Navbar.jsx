@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { auth } from '../firebase/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -6,9 +6,31 @@ import './Navbar.css';
 import Dropdown from './Dropdown'; 
 import logo from './logo.webp'; 
 
+const serviceMenuItems = [
+  {
+    title: 'Multilingual Resources',
+    path: '/multilingual',
+    cName: 'dropdown-link'
+  },
+  {
+    title: 'Skills Marketplace',
+    path: '/skills',
+    cName: 'dropdown-link'
+  },
+];
+
+const profileMenuItems = [
+  {
+    title: 'Logout',
+    path: '/logout',
+    cName: 'dropdown-link'
+  }
+];
+
 function Navbar() {
   const [click, setClick] = useState(false);
-  const [dropdown, setDropdown] = useState(false);
+  const [servicesDropdown, setServicesDropdown] = useState(false);
+  const [profileDropdown, setProfileDropdown] = useState(false);
 
   const [user, setUser] = useState(null);
   useEffect(() => {
@@ -23,20 +45,28 @@ function Navbar() {
   const handleClick = () => setClick(!click);
   const closeMobileMenu = () => setClick(false);
 
-  // Show dropdown on desktop hover
-  const onMouseEnter = () => {
+  // Show dropdown on desktop hover for Services
+  const onMouseEnterServices = () => {
     if (window.innerWidth < 960) {
-      setDropdown(false);
+      setServicesDropdown(false);
     } else {
-      setDropdown(true);
+      setServicesDropdown(true);
     }
   };
-  const onMouseLeave = () => {
+  const onMouseLeaveServices = () => {
+    setServicesDropdown(false);
+  };
+
+  // Show dropdown on desktop hover for Profile
+  const onMouseEnterProfile = () => {
     if (window.innerWidth < 960) {
-      setDropdown(false);
+      setProfileDropdown(false);
     } else {
-      setDropdown(false);
+      setProfileDropdown(true);
     }
+  };
+  const onMouseLeaveProfile = () => {
+    setProfileDropdown(false);
   };
 
   return (
@@ -61,17 +91,16 @@ function Navbar() {
             </Link>
           </li>
 
-          {/* EXAMPLE DROPDOWN (Hover on desktop) */}
+          {/* Services Dropdown */}
           <li
             className="nav-item"
-            onMouseEnter={onMouseEnter}
-            onMouseLeave={onMouseLeave}
+            onMouseEnter={onMouseEnterServices}
+            onMouseLeave={onMouseLeaveServices}
           >
             <Link to="/services" className="nav-links" onClick={closeMobileMenu}>
               Services <i className="fas fa-caret-down" />
             </Link>
-            {/* Smooth dropdown component */}
-            {dropdown && <Dropdown closeMenu={closeMobileMenu} />}
+            {servicesDropdown && <Dropdown closeMenu={closeMobileMenu} paths={serviceMenuItems} />}
           </li>
 
           <li className="nav-item">
@@ -86,11 +115,19 @@ function Navbar() {
             </Link>
           </li>
 
-          <li className="nav-item">
+          {/* Profile Dropdown */}
+          <li
+            className="nav-item"
+            onMouseEnter={onMouseEnterProfile}
+            onMouseLeave={onMouseLeaveProfile}
+          >
             {user ? (
-              <Link to="/profile" className="nav-links" onClick={closeMobileMenu}>
-                Profile
-              </Link>
+              <>
+                <Link to="/profile" className="nav-links" onClick={closeMobileMenu}>
+                  Profile <i className="fas fa-caret-down" />
+                </Link>
+                {profileDropdown && <Dropdown closeMenu={closeMobileMenu} paths={profileMenuItems} />}
+              </>
             ) : (
               <Link to="/login" className="nav-links" onClick={closeMobileMenu}>
                 Login

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase/firebase';
 import { db } from '../firebase/firebase';
-import { collection, addDoc, getDocs, getDocsFromCache ,onSnapshot } from 'firebase/firestore';
+import { collection, addDoc, getDocs, getDocsFromCache, onSnapshot } from 'firebase/firestore';
 import './Skills.css';
 import SkillChat from './SkillChat'; // Import the new SkillChat component
 
@@ -124,7 +124,12 @@ const SkillTradeModal = ({ isOpen, onClose, onSubmit }) => {
   );
 };
 
-const SkillTradeInfoModal = ({ isOpen, onClose, post }) => {
+const SkillTradeInfoModal = ({ isOpen, onClose, onAccept, post, user }) => {
+
+  const redirectToLogin = () => {
+    window.location.href = '/login';
+  };
+
   return isOpen ? (
     <div className="skill-trade-modal-overlay">
       <div className="skill-trade-modal-content">
@@ -158,7 +163,12 @@ const SkillTradeInfoModal = ({ isOpen, onClose, post }) => {
         
         <div className="skill-trade-modal-button-container">
           <button onClick={onClose} className="skill-trade-modal-cancel-button">Close</button>
-          <button onClick={onClose} className="skill-trade-modal-submit-button">Accept</button>
+          <button 
+            onClick={user ? onAccept : redirectToLogin} 
+            className="skill-trade-modal-submit-button"
+          >
+            {user ? "Accept" : "Login to Accept"}
+          </button>
         </div>
       </div>
     </div>
@@ -166,10 +176,48 @@ const SkillTradeInfoModal = ({ isOpen, onClose, post }) => {
 };
 
 export default function Skills() {
-  const [posts, setPosts] = useState([
-    { offer: 'Math Tutoring', description: 'Lorem ipsum', request: 'Crochet Lessons', image: '' },
-    { offer: 'Guitar Lessons', description: 'Lorem ipsum', request: 'French Practice', image: '' },
-  ]);
+  const [user, setUser] = useState(null);
+  const [posts, setPosts] = useState([]);
+  const [tooltipVisible, setTooltipVisible] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+    });
+
+    return unsubscribe;
+  }, []);
+
+  const fetchPosts = async (ref) => {
+    let querySnapshot;
+    try {
+      querySnapshot = await getDocsFromCache(ref);
+    } catch (e) {
+      querySnapshot = await getDocs(ref);
+    }
+
+    const postsData = querySnapshot.docs.map((doc) => doc.data());
+    setPosts(postsData);
+  };
+
+  useEffect(() => {
+    const postsCollectionRef = collection(db, 'posts');
+    
+    fetchPosts(postsCollectionRef);
+
+    const postsListener = onSnapshot(postsCollectionRef, (snapshot) => {
+      const postsData = snapshot.docs.map((doc) => doc.data());
+      setPosts(postsData);
+    });
+
+    return postsListener;
+  }, []);
+
+  const handleNewPost = (newPost) => {
+    const postsCollectionRef = collection(db, 'posts');
+    addDoc(postsCollectionRef, newPost);
+  };
+
   const [search, setSearch] = useState('');
   const [isModalOpen, setModalOpen] = useState(false);
   const [isInfoModalOpen, setInfoModalOpen] = useState(false);
@@ -182,8 +230,6 @@ export default function Skills() {
       post.request.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleNewPost = (newPost) => setPosts([...posts, newPost]);
-
   const handleCardClick = (post) => {
     setSelectedPost(post);
     setInfoModalOpen(true);
@@ -192,9 +238,11 @@ export default function Skills() {
   const handleAccept = () => {
     // close the info modal
     setInfoModalOpen(false);
+    console.log("balls");
     
     // aafter a brief delay, open the chat modal
     setTimeout(() => {
+      console.log("balls");
       setIsChatOpen(true);
     }, 300);
   };
@@ -218,10 +266,16 @@ export default function Skills() {
         <button
           onClick={user ? () => setModalOpen(true) : () => window.location.href = '/login'}
           className="fab"
+          onMouseEnter={() => setTooltipVisible(true)}
+          onMouseLeave={() => setTooltipVisible(false)}
         >
           +
         </button>
-        <span className="fab-tooltip">{user ? "Create a new post" : "Login to create a post"}</span>
+        {tooltipVisible && (
+          <div className="fab-tooltip">
+            {user ? "Create a new post" : "Login to create a post"}
+          </div>
+        )}
       </div>
       <div className="skills-grid">
         {filteredPosts.map((post, index) => (

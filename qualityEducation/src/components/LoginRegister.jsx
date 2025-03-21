@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
 import { auth, provider } from '../firebase/firebase';
 import { db } from '../firebase/firebase';
+import { useNavigate } from 'react-router-dom';
 import { doc, setDoc, serverTimestamp, collection, getDoc } from 'firebase/firestore';
 import './LoginRegister.css';
 
@@ -10,6 +11,8 @@ const LoginRegister = () => {
   const [password, setPassword] = useState('');
   const [isLogin, setIsLogin] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,6 +45,8 @@ const LoginRegister = () => {
   
           await setDoc(doc(chatsCollectionRef, 'placeholder'), {});
           await setDoc(doc(postsCollectionRef, 'placeholder'), {});
+
+          navigate('/');
         } else {
           setErrorMessage('User with these credentials already exists.');
         }
@@ -50,6 +55,8 @@ const LoginRegister = () => {
       setErrorMessage(error.message);
       console.error('Authentication error:', error.message);
     }
+
+    
   };
 
   const handleGoogleSignIn = async () => {
@@ -73,11 +80,15 @@ const LoginRegister = () => {
 
         await setDoc(doc(chatsCollectionRef, 'placeholder'), {});
         await setDoc(doc(postsCollectionRef, 'placeholder'), {});
+
+        
       }
+      navigate('/');
     } catch (error) {
       setErrorMessage(error.message);
       console.error('Google sign-in error:', error.message);
     }
+    
   };
 
   return (
