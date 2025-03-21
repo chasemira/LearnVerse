@@ -1,4 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../firebase/firebase';
+import { db } from '../firebase/firebase';
+import { collection, addDoc, getDocs, getDocsFromCache ,onSnapshot } from 'firebase/firestore';
 import './Skills.css';
 
 const SkillTradingPost = ({ offer, request, image, onClick }) => (
@@ -80,7 +84,12 @@ const SkillTradeModal = ({ isOpen, onClose, onSubmit }) => {
   ) : null;
 };
 
-const SkillTradeInfoModal = ({ isOpen, onClose, post }) => {
+const SkillTradeInfoModal = ({ isOpen, onClose, post, user }) => {
+
+  const redirectToLogin = () => {
+    window.location.href = '/login';
+  };
+
   return isOpen ? (
     <div className="skill-trade-modal-overlay">
       <div className="skill-trade-modal-content">
@@ -91,7 +100,9 @@ const SkillTradeInfoModal = ({ isOpen, onClose, post }) => {
         {post.image && <img src={post.image} alt="Skill Example" className="skills-image" />}
         <div className="skill-trade-modal-button-container">
           <button onClick={onClose} className="skill-trade-modal-cancel-button">Close</button>
-          <button onClick={onClose} className="skill-trade-modal-submit-button">Accept</button>
+          <button onClick={user ? onClose : redirectToLogin} className="skill-trade-modal-submit-button">
+            {user ? 'Accept' : 'Login or Create an Account to Accept'}
+          </button>
         </div>
       </div>
     </div>
@@ -99,10 +110,43 @@ const SkillTradeInfoModal = ({ isOpen, onClose, post }) => {
 };
 
 export default function Skills() {
-  const [posts, setPosts] = useState([
-    { offer: 'Math Tutoring', description: 'Lorem ipsum', request: 'Crochet Lessons', image: '' },
-    { offer: 'Guitar Lessons', description: 'Lorem ipsum', request: 'French Practice', image: '' },
-  ]);
+
+  const [user, setUser] = useState(null);
+  const [posts, setPosts] = useState([]);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+    });
+
+    return unsubscribe;
+  }, []);
+
+  const fetchPosts = async (ref) => {
+    let querySnapshot;
+    try {
+      querySnapshot = await getDocsFromCache(ref);
+    } catch (e) {
+      querySnapshot = await getDocs(ref);
+    }
+
+    const postsData = querySnapshot.docs.map((doc) => doc.data());
+    setPosts(postsData);
+  }
+
+  useEffect(() => {
+    const postsCollectionRef = collection(db, 'posts');
+    
+    fetchPosts(postsCollectionRef);
+
+    const postsListener = onSnapshot(postsCollectionRef, (snapshot) => {
+      const postsData = snapshot.docs.map((doc) => doc.data());
+      setPosts(postsData);
+    });
+
+    return postsListener;
+  }, []);
+
   const [search, setSearch] = useState('');
   const [isModalOpen, setModalOpen] = useState(false);
   const [isInfoModalOpen, setInfoModalOpen] = useState(false);
@@ -114,7 +158,10 @@ export default function Skills() {
       post.request.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleNewPost = (newPost) => setPosts([...posts, newPost]);
+  const handleNewPost = (newPost) => {
+    const postsCollectionRef = collection(db, 'posts');
+    addDoc(postsCollectionRef, newPost);
+  }
 
   const handleCardClick = (post) => {
     setSelectedPost(post);
@@ -136,12 +183,15 @@ export default function Skills() {
         </div>
       </div>
       
-      <button
-        onClick={() => setModalOpen(true)}
-        className="fab"
-      >
-        +
-      </button>
+      <div className="fab-container">
+        <button
+          onClick={user ? () => setModalOpen(true) : () => window.location.href = '/login'}
+          className="fab"
+        >
+          +
+        </button>
+        <span className="fab-tooltip">{user ? "Create a new post" : "Login to create a post"}</span>
+      </div>
       <div className="skills-grid">
         {filteredPosts.map((post, index) => (
           <SkillTradingPost key={index} {...post} onClick={() => handleCardClick(post)} />
@@ -156,6 +206,7 @@ export default function Skills() {
         isOpen={isInfoModalOpen}
         onClose={() => setInfoModalOpen(false)}
         post={selectedPost}
+        user={user}
       />
     </div>
   );

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { auth } from '../firebase/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import './Navbar.css';
 import Dropdown from './Dropdown'; 
 import logo from './logo.webp'; 
@@ -7,6 +9,15 @@ import logo from './logo.webp';
 function Navbar() {
   const [click, setClick] = useState(false);
   const [dropdown, setDropdown] = useState(false);
+
+  const [user, setUser] = useState(null);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+    });
+
+    return unsubscribe;
+  }, []);
 
   // Toggle mobile menu open/close
   const handleClick = () => setClick(!click);
@@ -73,6 +84,18 @@ function Navbar() {
             <Link to="/contact" className="nav-links" onClick={closeMobileMenu}>
               Contacts
             </Link>
+          </li>
+
+          <li className="nav-item">
+            {user ? (
+              <Link to="/profile" className="nav-links" onClick={closeMobileMenu}>
+                Profile
+              </Link>
+            ) : (
+              <Link to="/login" className="nav-links" onClick={closeMobileMenu}>
+                Login
+              </Link>
+            )}
           </li>
         </ul>
 
