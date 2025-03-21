@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './Skills.css';
+import SkillChat from './SkillChat'; // Import the new SkillChat component
 
 const SkillTradingPost = ({ offer, request, image, onClick }) => (
   <div className="skills-card" onClick={onClick}>
@@ -14,21 +15,28 @@ const SkillTradeModal = ({ isOpen, onClose, onSubmit }) => {
   const [request, setRequest] = useState('');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState(null);
+  const [fileName, setFileName] = useState('No file chosen');
 
   const handleImageChange = (e) => {
-    setImage(e.target.files[0]);
+    if (e.target.files[0]) {
+      setImage(e.target.files[0]);
+      setFileName(e.target.files[0].name);
+    }
   };
 
   const handleSubmit = () => {
-    setOffer('');
-    setRequest('');
-    setDescription('');
-    setImage(null);
     const reader = new FileReader();
     reader.onloadend = () => {
       onSubmit({ offer, request, description, image: reader.result });
+      // Reset form
+      setOffer('');
+      setRequest('');
+      setDescription('');
+      setImage(null);
+      setFileName('No file chosen');
       onClose();
     };
+    
     if (image) {
       reader.readAsDataURL(image);
     } else {
@@ -37,61 +45,122 @@ const SkillTradeModal = ({ isOpen, onClose, onSubmit }) => {
     }
   };
 
-  return isOpen ? (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <h2 className="modal-heading">Create a Skill Trade Post</h2>
-        <input
-          type="text"
-          placeholder="What can you teach?"
-          value={offer}
-          onChange={(e) => setOffer(e.target.value)}
-          className="modal-input"
-        />
-        <input
-          type="text"
-          placeholder="What do you want to learn?"
-          value={request}
-          onChange={(e) => setRequest(e.target.value)}
-          className="modal-input"
-        />
-        <textarea
-          placeholder="Description (optional)"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="modal-textarea"
-        />
+  if (!isOpen) return null;
+
+  return (
+    <div className="create-skill-modal-overlay">
+      <div className="create-skill-modal-content">
+        <h2 className="create-skill-modal-heading">Create a Skill Trade Post</h2>
         
-        <label htmlFor="image" className="modal-label">Upload an image (optional)</label>
-        <br />
-        <small className="modal-small">Accepted file types: .jpg, .jpeg, .png</small>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleImageChange}
-          className="image-file-input"
-        />
-        <div className="modal-button-container">
-          <button onClick={onClose} className="modal-cancel-button">Cancel</button>
-          <button onClick={handleSubmit} className="modal-submit-button">Post</button>
+        <div className="create-skill-form-container">
+          <div className="create-skill-input-group">
+            <label className="create-skill-label">Offering:</label>
+            <input
+              type="text"
+              placeholder="What can you teach?"
+              value={offer}
+              onChange={(e) => setOffer(e.target.value)}
+              className="create-skill-input"
+            />
+          </div>
+          
+          <div className="create-skill-input-group">
+            <label className="create-skill-label">Looking for:</label>
+            <input
+              type="text"
+              placeholder="What do you want to learn?"
+              value={request}
+              onChange={(e) => setRequest(e.target.value)}
+              className="create-skill-input"
+            />
+          </div>
+          
+          <div className="create-skill-input-group">
+            <label className="create-skill-label">Description:</label>
+            <textarea
+              placeholder="Tell us more about what you're offering"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="create-skill-textarea"
+            />
+          </div>
+          
+          <div className="create-skill-file-container">
+            <label className="create-skill-file-label">Upload an image</label>
+            <p className="create-skill-file-info">Accepted file types: .jpg, .jpeg, .png</p>
+            
+            <div className="create-skill-file-input-wrapper">
+              <div className="create-skill-file-button">
+                <span className="create-button-icon">📁</span>
+                <span>Choose File</span>
+                <span className="create-skill-file-text">{fileName}</span>
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="create-skill-file-input"
+              />
+            </div>
+          </div>
+        </div>
+        
+        <div className="create-skill-button-container">
+          <button onClick={onClose} className="create-skill-cancel-button">
+            <span className="create-button-icon">✕</span>
+            <span>Cancel</span>
+          </button>
+          <button onClick={handleSubmit} className="create-skill-submit-button">
+            <span className="create-button-icon">✓</span>
+            <span>Post</span>
+          </button>
         </div>
       </div>
     </div>
-  ) : null;
+  );
 };
 
-const SkillTradeInfoModal = ({ isOpen, onClose, post }) => {
+const SkillTradeInfoModal = ({ isOpen, onClose, post, onAccept }) => {
   return isOpen ? (
     <div className="skill-trade-modal-overlay">
       <div className="skill-trade-modal-content">
         <h2 className="skill-trade-modal-heading">Skill Trade Details</h2>
-        <h3 className="font-bold text-lg">Offering: {post.offer}</h3>
-        <p className="text-sm">Looking for: {post.request}</p>
-        {post.description && <p className="skill-trade-modal-description">Description: {post.description}</p>}
-        {post.image && <img src={post.image} alt="Skill Example" className="skills-image" />}
+        
+        {/* Image positioned right after the heading */}
+        {post.image && (
+          <div className="modal-image-container">
+            <img src={post.image} alt="Skill Example" className="skills-image-large" />
+          </div>
+        )}
+        
+        <div className="modal-details-container">
+          <div className="modal-detail-item">
+            <span className="modal-detail-label">Offering:</span>
+            <span className="modal-detail-value">{post.offer}</span>
+          </div>
+          
+          <div className="modal-detail-item">
+            <span className="modal-detail-label">Looking for:</span>
+            <span className="modal-detail-value">{post.request}</span>
+          </div>
+          
+          {post.description && (
+            <div className="modal-description">
+              <span className="modal-detail-label">Description:</span>
+              <p className="modal-detail-value description-text">{post.description}</p>
+            </div>
+          )}
+        </div>
+        
         <div className="skill-trade-modal-button-container">
-          <button onClick={onClose} className="skill-trade-modal-cancel-button">Close</button>
-          <button onClick={onClose} className="skill-trade-modal-submit-button">Accept</button>
+          <button onClick={onClose} className="skill-trade-modal-cancel-button">
+            <span className="button-icon">✕</span>
+            <span className="button-text">Close</span>
+          </button>
+          <button onClick={onAccept} className="skill-trade-modal-submit-button">
+            <span className="button-icon">✓</span>
+            <span className="button-text">Accept Trade</span>
+          </button>
         </div>
       </div>
     </div>
@@ -99,13 +168,28 @@ const SkillTradeInfoModal = ({ isOpen, onClose, post }) => {
 };
 
 export default function Skills() {
+
+  // TODO: hard coded for now --> change later w backend 
   const [posts, setPosts] = useState([
-    { offer: 'Math Tutoring', description: 'Lorem ipsum', request: 'Crochet Lessons', image: '' },
-    { offer: 'Guitar Lessons', description: 'Lorem ipsum', request: 'French Practice', image: '' },
+    { 
+      owner: "John Smith", 
+      offer: 'Math Tutoring', 
+      description: 'I can help with algebra, calculus, and statistics. I have 3 years of tutoring experience.', 
+      request: 'Crochet Lessons', 
+      image: '' 
+    },
+    { 
+      owner: "Emma Wilson",
+      offer: 'Guitar Lessons', 
+      description: 'Learn guitar from a 10-year experienced player. I specialize in acoustic and blues.', 
+      request: 'French Practice', 
+      image: '' 
+    },
   ]);
   const [search, setSearch] = useState('');
   const [isModalOpen, setModalOpen] = useState(false);
   const [isInfoModalOpen, setInfoModalOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
 
   const filteredPosts = posts.filter(
@@ -114,11 +198,28 @@ export default function Skills() {
       post.request.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleNewPost = (newPost) => setPosts([...posts, newPost]);
+  const handleNewPost = (newPost) => {
+    // Add owner name to the new post (using a placeholder name)
+    const newPostWithOwner = {
+      ...newPost,
+      owner: "Your Name" // In a real app, this would be the logged-in user's name
+    };
+    setPosts([...posts, newPostWithOwner]);
+  };
 
   const handleCardClick = (post) => {
     setSelectedPost(post);
     setInfoModalOpen(true);
+  };
+
+  const handleAccept = () => {
+    // close the info modal
+    setInfoModalOpen(false);
+    
+    // aafter a brief delay, open the chat modal
+    setTimeout(() => {
+      setIsChatOpen(true);
+    }, 300);
   };
 
   return (
@@ -155,8 +256,17 @@ export default function Skills() {
       <SkillTradeInfoModal
         isOpen={isInfoModalOpen}
         onClose={() => setInfoModalOpen(false)}
+        onAccept={handleAccept}
         post={selectedPost}
       />
+      {selectedPost && (
+        <SkillChat 
+          isOpen={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+          skillOwner={selectedPost.owner}
+          skillOffer={selectedPost.offer}
+        />
+      )}
     </div>
   );
 }
