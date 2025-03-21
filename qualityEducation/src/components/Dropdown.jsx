@@ -1,9 +1,8 @@
-// import React, { useState } from 'react';
-import { MenuItems } from './MenuItems';
+import React, { useState } from 'react';
 import './Dropdown.css';
 import { Link, useNavigate } from 'react-router-dom';
 
-function Dropdown({ closeMenu }) {
+function Dropdown({ closeMenu, paths }) {
   const navigate = useNavigate();
 
   const handleItemClick = (path) => {
@@ -16,7 +15,7 @@ function Dropdown({ closeMenu }) {
 
   return (
     <ul className="dropdown-menu">
-      {MenuItems.map((item, index) => (
+      {paths.map((item, index) => (
         <li key={index}>
           <Link
             className={item.cName}
