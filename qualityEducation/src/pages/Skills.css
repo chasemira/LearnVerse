@@ -211,6 +211,28 @@
     transition: background-color 0.3s, transform 0.3s;
     user-select: none;
   }
+
+  .fab-tooltip {
+    visibility: hidden;
+    background-color: #6a0dad;
+    color: #ffffff;
+    text-align: center;
+    padding: 8px;
+    border-radius: 4px;
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 8px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+  }
+  
+  .fab-container:hover .fab-tooltip {
+    visibility: visible;
+  }
   
   .fab:hover {
     background-color: #9b30ff; /* Lighter purple */

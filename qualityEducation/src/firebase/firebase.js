@@ -2,8 +2,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { dotenv } from "dotenv";
-dotenv.config();
 
 
 // TODO: Add SDKs for Firebase products that you want to use
@@ -12,7 +10,7 @@ dotenv.config();
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: process.env.FIREBASE_API_KEY,
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: "learnverse-hack-the-sem-2025.firebaseapp.com",
   projectId: "learnverse-hack-the-sem-2025",
   storageBucket: "learnverse-hack-the-sem-2025.firebasestorage.app",
