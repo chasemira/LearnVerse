@@ -64,6 +64,7 @@ const LoginRegister = () => {
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
+      console.log(user);
 
       const userDocRef = doc(db, 'users', user.uid);
       const userDoc = await getDoc(userDocRef);
@@ -71,6 +72,8 @@ const LoginRegister = () => {
       if (!userDoc.exists()) {
         await setDoc(userDocRef, {
           email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
           createdAt: serverTimestamp(),
           provider: 'google',
         });
