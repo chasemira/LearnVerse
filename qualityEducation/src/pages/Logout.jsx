@@ -1,18 +1,11 @@
 import React from 'react'
 import { Navigate } from 'react-router-dom'
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../firebase/firebase';
+import { auth } from '../firebase/firebase'
+import { useAuth } from '../hooks/useAuth'
 
 export default function Logout() {
 
-    const [user, setUser] = React.useState(null);
-    React.useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            setUser(user);
-        });
-
-        return unsubscribe;
-    }, []);
+    const user = useAuth();
 
     if (user) {
         auth.signOut();
