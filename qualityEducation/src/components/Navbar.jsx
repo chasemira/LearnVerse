@@ -33,11 +33,11 @@ function Navbar() {
   const [profileDropdown, setProfileDropdown] = useState(false);
 
   const [user, setUser] = useState(null);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
     });
-
     return unsubscribe;
   }, []);
 
@@ -142,8 +142,16 @@ function Navbar() {
             <input type="text" placeholder="Search in site" />
             <i className="fas fa-search" />
           </div>
-          {/* If you want a button, e.g. "Donate" */}
-          {/* <button className="nav-btn">Donate</button> */}
+
+          {/* === NEW: A user icon (only if the user is logged in) === */}
+          {user && (
+            <Link to="/profile" className="nav-links" onClick={closeMobileMenu}>
+              <i
+                className="fas fa-user-circle"
+                style={{ fontSize: '1.8rem', color: '#fff', marginLeft: '16px' }}
+              />
+            </Link>
+          )}
         </div>
       </nav>
     </>
