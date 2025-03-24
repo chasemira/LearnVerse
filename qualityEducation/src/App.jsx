@@ -1,3 +1,5 @@
+// File: src/App.jsx
+
 import React from 'react';
 import Navbar from './components/Navbar';
 import './App.css';
@@ -9,28 +11,31 @@ import Multilingual from './pages/Multilingual';
 import Skills from './pages/Skills';
 import Login from './pages/Login';
 import Logout from './pages/Logout';
-import Profile from './pages/Profile';
-import AuthState from './components/AuthState';
+import Profile from './components/Profile';   // or './components/Profile' if you put it there
+import AuthState from './components/AuthState'; // if you're still using this anywhere
 
 function App() {
-
   return (
     <Router>
       <Navbar />
+
       <Routes>
-        <Route path='/' element={<Home />} />
-        <Route path='/contact' element={<Contact />} />
-        <Route path='/community' element={<Community />} />
-        <Route path='/multilingual' element={<Multilingual />} />
-        <Route path='/skills' element={<Skills />} />
-        <Route path='/login' element={<Login />} />
-        <Route path='/logout' element={<Logout />} />
-        <Route path='/profile' element={<Profile />} />
-        <Route path='/profile/:uid' element={<Profile />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/community" element={<Community />} />
+        <Route path="/multilingual" element={<Multilingual />} />
+        <Route path="/skills" element={<Skills />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/logout" element={<Logout />} />
+
+        {/* NEW or RE-ENABLED: The Profile route */}
+        <Route path="/profile" element={<Profile />} />
+
+        {/* If you want a dynamic profile route as well: */}
+        <Route path="/profile/:uid" element={<Profile />} />
       </Routes>
     </Router>
   );
 }
+
 export default App;
-
-
