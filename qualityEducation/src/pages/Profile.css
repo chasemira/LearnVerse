@@ -101,6 +101,13 @@
     display: block;
   }
   
+
+  .profile-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+  }
+
   /* EDIT BUTTON */
   .edit-button {
     background: linear-gradient(135deg, #6a0dad, #9b30ff);
