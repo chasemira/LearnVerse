@@ -102,13 +102,7 @@ function Navbar() {
             </Link>
             {servicesDropdown && <Dropdown closeMenu={closeMobileMenu} paths={serviceMenuItems} />}
           </li>
-
-          <li className="nav-item">
-            <Link to="/community" className="nav-links" onClick={closeMobileMenu}>
-              Community
-            </Link>
-          </li>
-
+          
           <li className="nav-item">
             <Link to="/contact" className="nav-links" onClick={closeMobileMenu}>
               Contacts
