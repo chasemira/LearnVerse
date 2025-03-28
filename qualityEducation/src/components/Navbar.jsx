@@ -57,17 +57,7 @@ function Navbar() {
     setServicesDropdown(false);
   };
 
-  // Show dropdown on desktop hover for Profile
-  const onMouseEnterProfile = () => {
-    if (window.innerWidth < 960) {
-      setProfileDropdown(false);
-    } else {
-      setProfileDropdown(true);
-    }
-  };
-  const onMouseLeaveProfile = () => {
-    setProfileDropdown(false);
-  };
+
 
   return (
     <>
@@ -115,25 +105,16 @@ function Navbar() {
             </Link>
           </li>
 
-          {/* Profile Dropdown */}
-          <li
-            className="nav-item"
-            onMouseEnter={onMouseEnterProfile}
-            onMouseLeave={onMouseLeaveProfile}
-          >
-            {user ? (
-              <>
-                <Link to="/profile" className="nav-links" onClick={closeMobileMenu}>
-                  Profile <i className="fas fa-caret-down" />
+          {
+            !user && (
+              <li className="nav-item">
+                <Link to="/login" className="nav-links" onClick={closeMobileMenu}>
+                  Login
                 </Link>
-                {profileDropdown && <Dropdown closeMenu={closeMobileMenu} paths={profileMenuItems} />}
-              </>
-            ) : (
-              <Link to="/login" className="nav-links" onClick={closeMobileMenu}>
-                Login
-              </Link>
-            )}
-          </li>
+              </li>
+            )
+          }
+
         </ul>
 
         {/* SEARCH BAR OR BUTTONS ON THE RIGHT */}
@@ -145,7 +126,7 @@ function Navbar() {
 
           {/* === NEW: A user icon (only if the user is logged in) === */}
           {user && (
-            <Link to="/profile" className="nav-links" onClick={closeMobileMenu}>
+            <Link to={`/profile/${user.uid}`} className="nav-profile" onClick={closeMobileMenu}>
               <i
                 className="fas fa-user-circle"
                 style={{ fontSize: '1.8rem', color: '#fff', marginLeft: '16px' }}

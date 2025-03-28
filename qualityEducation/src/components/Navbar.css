@@ -79,6 +79,13 @@
   border-radius: 4px;
   color: white;
 }
+.nav-profile {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #fff;
+  padding: 0.5rem 1rem;
+}
 
 /******************************
   NAV RIGHT ITEMS (SEARCH, ETC)

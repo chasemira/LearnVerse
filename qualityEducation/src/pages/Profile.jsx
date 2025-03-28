@@ -1,4 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
+import { auth } from '../firebase/firebase'; // Import your Firebase auth instance
+import { onAuthStateChanged } from 'firebase/auth';
+import { db } from '../firebase/firebase'; // Import your Firebase Firestore instance
+import { doc, setDoc, getDoc,  onSnapshot } from 'firebase/firestore';
+
 import './Profile.css';
 
 // Simple placeholders for the initial user data
@@ -14,6 +20,50 @@ const Profile = () => {
   const [profileData, setProfileData] = useState(initialProfileData);
   // Controls whether we are editing or just viewing
   const [isEditing, setIsEditing] = useState(false);
+
+  const [editable, setEditable] = useState(false);
+
+  const [image, setImage] = useState(null);
+  const [fileName, setFileName] = useState('No file chosen');
+
+  const navigate = useNavigate(); 
+
+  const { uid } = useParams();
+  
+  const fetchUserData = async () => {
+    console.log('Fetching user data for UID:', uid);
+    const userDocRef = doc(db, 'users', uid); // Assuming 'users' is your collection name
+    try {
+      const userDoc = await getDoc(userDocRef);
+      if (userDoc.exists()) {
+        console.log('User data:', userDoc.data());
+        const userData = userDoc.data();
+        setProfileData({... userData }); // Set the image URL if it exists
+      } else {
+        console.log('No such document!');
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    }
+  };
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setEditable(user.uid === uid); // Check if the logged-in user is the same as the profile being viewed
+        fetchUserData();
+      }
+    });
+    return () => unsubscribe(); // Cleanup subscription on unmount
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(doc(db, 'users', uid), (doc) => {
+      setProfileData(doc.data());
+    });
+
+    return () => unsubscribe(); // Cleanup subscription on unmount
+  }, []);
 
   // Days of the week and time slots
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -41,17 +91,68 @@ const Profile = () => {
   };
 
   // Handle profile image upload
-  const handleImageUpload = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      // Create a temporary URL for preview
-      const previewURL = URL.createObjectURL(file);
-      setProfileData((prev) => ({
-        ...prev,
-        image: previewURL, 
-      }));
+  const handleImageChange = (e) => {
+    if (e.target.files[0]) {
+      setImage(e.target.files[0]);
+      setFileName(e.target.files[0].name);
     }
   };
+
+  const saveProfileData = async () => {
+
+    if (!isEditing) {
+      setIsEditing(true); // Enter edit mode
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const userDocRef = doc(db, 'users', uid); // Assuming 'users' is your collection name
+      try {
+        await setDoc(userDocRef, { ...profileData, photoURL: reader.result }, { merge: true });
+        console.log('Profile data saved successfully!');  
+      } catch (error) {
+        console.error('Error saving profile data:', error);
+      }
+    };
+
+    if (image) {
+      reader.readAsDataURL(image); // Read the image file as a data URL
+    }
+    else { 
+      const userDocRef = doc(db, 'users', uid); // Assuming 'users' is your collection name
+      try {
+        await setDoc(userDocRef, { ...profileData }, { merge: true });
+        console.log('Profile data saved successfully!');  
+      } catch (error) {
+        console.error('Error saving profile data:', error);
+      }
+    }
+    
+      
+
+    setIsEditing(false); // Exit edit mode after saving
+  };
+
+
+  const convertScheduleToJson = (s) => {
+    const scheduleJson = Object.fromEntries(
+      Object.entries(s).map(([day, slots]) => [day, Array.from(slots)])
+    );
+    return JSON.stringify(scheduleJson, null, 2);
+  }
+
+  const jsonToSchedule = (json) => {
+    const parsed = JSON.parse(json);
+    const schedule = Object.fromEntries(
+      Object.entries(parsed).map(([day, slots]) => [day, new Set(slots)])
+    );
+    return schedule;
+  }
+
+  useEffect(() => {
+    console.log(convertScheduleToJson(schedule));
+  }, [schedule])
 
   // Toggle a timeslot in the schedule
   const toggleTimeSlot = (day, slotIndex) => {
@@ -66,6 +167,7 @@ const Profile = () => {
       newSchedule[day] = updatedSlots;
       return newSchedule;
     });
+    
   };
 
   // Display a textual summary of availability
@@ -86,9 +188,9 @@ const Profile = () => {
       {/* PROFILE CARD */}
       <div className="profile-card">
         <div className="profile-image-section">
-          {profileData.image ? (
+          {profileData.photoURL ? (
             <img
-              src={profileData.image}
+              src={profileData.photoURL}
               alt="Profile"
               className="profile-image"
             />
@@ -106,7 +208,7 @@ const Profile = () => {
               <input
                 type="text"
                 name="name"
-                value={profileData.name}
+                value={profileData.displayName}
                 onChange={handleChange}
                 className="profile-input"
               />
@@ -122,16 +224,17 @@ const Profile = () => {
                 value={profileData.description}
                 onChange={handleChange}
                 className="profile-textarea"
+                placeholder='Write a short bio or description here...'
               />
               <div className="profile-image-upload">
                 <label htmlFor="profileImage" className="upload-label">
-                  Upload New Image
+                  {fileName ? fileName : 'Upload Profile Image'} 
                 </label>
                 <input
                   type="file"
                   id="profileImage"
                   accept="image/*"
-                  onChange={handleImageUpload}
+                  onChange={handleImageChange}
                   className="profile-file-input"
                 />
               </div>
@@ -139,18 +242,30 @@ const Profile = () => {
           ) : (
             <>
               {/* Display-mode fields */}
-              <h2 className="profile-name">{profileData.name}</h2>
+              <h2 className="profile-name">{profileData.displayName}</h2>
               <p className="profile-email">{profileData.email}</p>
               <p className="profile-description">{profileData.description}</p>
             </>
           )}
 
-          <button
-            className="edit-button"
-            onClick={() => setIsEditing(!isEditing)}
-          >
-            {isEditing ? 'Save' : 'Edit Profile'}
-          </button>
+          {
+            editable && (
+              <div className="profile-buttons">
+                <button
+                  className="edit-button"
+                  onClick={() => saveProfileData()}
+                >
+                  {isEditing ? 'Save' : 'Edit Profile'}
+                </button>
+                <button
+                  className="edit-button"
+                  onClick={() => navigate('/logout')}
+                >
+                  Logout
+                </button>
+              </div>
+            )
+          }
         </div>
       </div>
 
