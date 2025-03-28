@@ -1,0 +1,194 @@
+.contact-container {
+    display: flex;
+    width: 100%;   /* Ensures full width */
+    height: calc(100vh - 80px); /* Adjust if needed */
+    margin: 0;
+    padding: 0;
+    align-items: stretch;
+    justify-content: flex-start;
+    background-color: #1a1a1a;
+    color: white;
+  }
+  
+  .contacts-list {
+    width: 30%;
+    border-right: 1px solid #444;
+    background-color: #252525;
+    overflow-y: auto;
+  }
+  
+  .contacts-header {
+    padding: 1px;
+    background: linear-gradient(90deg, #6a0dad, #9b30ff);
+    text-align: center;
+  }
+  
+  .contact-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid #444;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .contact-item:hover {
+    background-color: #333;
+  }
+  
+  .contact-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 12px;
+    object-fit: cover;
+  }
+  
+  .contact-info {
+    flex-grow: 1;
+  }
+  
+  .contact-info h3 {
+    margin: 0;
+    font-size: 1rem;
+  }
+  
+  .contact-info p {
+    margin: 4px 0 0;
+    color: #aaa;
+    font-size: 0.8rem;
+  }
+  
+  .chat-container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(135deg, #6a0dad, #9b30ff); /* Full background gradient */
+    border-radius: 0; /* Remove rounded corners */
+    overflow: hidden; /* Ensure content doesn't overflow */
+  }
+  
+  .chat-header {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background-color: rgba(0, 0, 0, 0.3); /* Semi-transparent overlay for the header */
+    border-bottom: 1px solid #444;
+    color: white;
+  }
+  
+  .chat-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 12px;
+  }
+  
+  .messages-container {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 16px;
+    background-color: #1a1a1a;
+  }
+  
+  .message {
+    max-width: 70%;
+    margin-bottom: 12px;
+    padding: 10px;
+    border-radius: 12px;
+    clear: both;
+  }
+  
+  .message.sent {
+    background-color: #6a0dad;
+    color: white;
+    align-self: flex-end;
+    float: right;
+    margin-left: auto;
+  }
+  
+  .message.received {
+    background-color: #333;
+    color: white;
+    align-self: flex-start;
+    float: left;
+  }
+  
+  .message-input-container {
+    display: flex;
+    padding: 12px;
+    background-color: #252525;
+  }
+  
+  .message-input {
+    flex-grow: 1;
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid #444;
+    background-color: #333;
+    color: white;
+    margin-right: 12px;
+  }
+  
+  .send-message-btn {
+    background: linear-gradient(135deg, #6a0dad, #9b30ff);
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 12px;
+  }
+  
+  .no-chat-selected {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #1a1a1a;
+    color: #aaa;
+  }
+  
+  .contact-login-required {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .contact-login-modal {
+    background-color: #1a1a1a;
+    padding: 24px;
+    border-radius: 24px;
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(106, 13, 173, 0.4);
+  }
+  
+  .contact-login-modal button {
+    background: linear-gradient(135deg, #6a0dad, #9b30ff);
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 12px;
+    margin-top: 16px;
+  }
+  
+  /* Responsive Design */
+  @media screen and (max-width: 768px) {
+    .contact-container {
+      flex-direction: column;
+    }
+  
+    .contacts-list {
+      width: 100%;
+      max-height: 40%;
+    }
+  
+    .chat-container {
+      flex-grow: 1;
+    }
+  }
