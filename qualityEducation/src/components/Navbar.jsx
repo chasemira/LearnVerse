@@ -6,6 +6,7 @@ import './Navbar.css';
 import Dropdown from './Dropdown'; 
 import logo from './logo.webp'; 
 
+
 const serviceMenuItems = [
   {
     title: 'Multilingual Resources',
