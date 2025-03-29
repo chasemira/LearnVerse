@@ -63,7 +63,7 @@ const Contact = () => {
       },
       {
         id: 'msg2',
-        senderId: user.uid,
+        senderId: user?.uid || 'currentUser',
         text: 'Absolutely! What topic should we cover today?',
         timestamp: new Date(Date.now() - 500000)
       },
@@ -83,13 +83,19 @@ const Contact = () => {
 
     const newMessageObj = {
       id: `msg_${Date.now()}`,
-      senderId: user.uid,
+      senderId: user?.uid || 'currentUser',
       text: newMessage,
       timestamp: new Date()
     };
 
     setMessages([...messages, newMessageObj]);
     setNewMessage('');
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSendMessage();
+    }
   };
 
   const renderContent = () => {
@@ -116,7 +122,7 @@ const Contact = () => {
           {contacts.map(contact => (
             <div 
               key={contact.id} 
-              className="contact-item"
+              className={`contact-item ${selectedChat && selectedChat.id === contact.id ? 'active' : ''}`}
               onClick={() => {
                 setSelectedChat(contact);
                 fetchMessages(contact.id);
@@ -124,7 +130,7 @@ const Contact = () => {
             >
               <img 
                 src={contact.userImage} 
-                alt="Contact" 
+                alt={contact.userName} 
                 className="contact-avatar" 
               />
               <div className="contact-info">
@@ -137,11 +143,11 @@ const Contact = () => {
         </div>
 
         {selectedChat ? (
-          <div className="chat-container">
+          <div className="chat-panel">
             <div className="chat-header">
               <img 
                 src={selectedChat.userImage} 
-                alt="Contact" 
+                alt={selectedChat.userName} 
                 className="chat-avatar" 
               />
               <div className="chat-header-info">
@@ -149,25 +155,26 @@ const Contact = () => {
                 <p>{selectedChat.skill} Exchange</p>
               </div>
             </div>
-            <div className="messages-container">
+            <div className="chat-messages">
               {messages.map(message => (
                 <div 
                   key={message.id} 
-                  className={`message ${message.senderId === user.uid ? 'sent' : 'received'}`}
+                  className={`chat-message ${message.senderId === (user?.uid || 'currentUser') ? 'sent' : 'received'}`}
                 >
                   {message.text}
                 </div>
               ))}
             </div>
-            <div className="message-input-container">
+            <div className="chat-input">
               <input 
                 type="text"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
                 placeholder="Type a message..."
                 className="message-input"
               />
-              <button onClick={handleSendMessage} className="send-message-btn">
+              <button onClick={handleSendMessage} className="send-button">
                 Send
               </button>
             </div>
