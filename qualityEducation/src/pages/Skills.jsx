@@ -2,7 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase/firebase';
 import { db } from '../firebase/firebase';
-import { collection, addDoc, getDocs, getDocsFromCache, onSnapshot } from 'firebase/firestore';
+import { 
+  collection, 
+  addDoc, 
+  getDocs, 
+  getDoc, 
+  getDocsFromCache, 
+  onSnapshot, 
+  serverTimestamp, 
+  doc, 
+  query, 
+  where, 
+  setDoc
+} from 'firebase/firestore';
 import './Skills.css';
 import SkillTradeModal from '../components/SkillTradeModal';
 import SkillTradeInfoModal from '../components/SkillTradeInfoModal';
@@ -20,6 +32,7 @@ export default function Skills() {
   const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
   const [tooltipVisible, setTooltipVisible] = useState(false);
+  const [chatId, setChatId] = useState(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -47,16 +60,27 @@ export default function Skills() {
     fetchPosts(postsCollectionRef);
 
     const postsListener = onSnapshot(postsCollectionRef, (snapshot) => {
-      const postsData = snapshot.docs.map((doc) => doc.data());
+      const postsData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       setPosts(postsData);
     });
 
     return postsListener;
   }, []);
 
-  const handleNewPost = (newPost) => {
+  const handleNewPost = async (newPost) => {
     const postsCollectionRef = collection(db, 'posts');
-    addDoc(postsCollectionRef, { ...newPost, authorID: user.uid, authorName: user.displayName });
+    const userPostsCollectionRef = collection(db, 'users', user.uid, 'posts');
+    console.log(userPostsCollectionRef);
+    console.log(newPost);
+
+    const postDocRef = await addDoc(
+      postsCollectionRef, 
+      { ...newPost, authorID: user.uid, authorName: user.displayName }
+    );
+    // add the post to the user's posts collection with custom id being the postID from newPost
+    const userPostDocRef = doc(userPostsCollectionRef, postDocRef.id);
+    setDoc(userPostDocRef, {});
+    
   };
 
   const [search, setSearch] = useState('');
@@ -73,10 +97,51 @@ export default function Skills() {
 
   const handleCardClick = (post) => {
     setSelectedPost(post);
+    console.log(post);
     setInfoModalOpen(true);
   };
 
-  const handleAccept = () => {
+  const handleAccept = async (post) => {
+
+    console.log(post);
+    const userChatsCollectionRef = collection(db, 'users', user.uid, 'chats');
+    const posterChatsCollectionRef = collection(db, 'users', post.authorID, 'chats');
+    const chatsCollectionRef = collection(db, 'chats');
+    // find if the chat already exists using firestore query
+    const userChat = await getDocs(
+      query(
+        userChatsCollectionRef, where('postID', '==', post.id)
+      )
+    );
+    // if the chat already exists, redirect to it
+    if (userChat.docs.length > 0) {
+      window.location.href = `/chat/${userChat.docs[0].id}`;
+      return;
+    }
+
+    const result = await addDoc(chatsCollectionRef, {
+      posterID: post.authorID,
+      accepteeID: user.uid,
+      skill: post.offer,
+      postID: post.id,
+    });
+
+    // create message collection for the chat
+    const messagesCollectionRef = collection(chatsCollectionRef, result.id, 'messages');
+    await addDoc(messagesCollectionRef, {
+      sender: user.uid,
+      text: `I accept your offer of ${post.offer} for ${post.request}.`,
+      timestamp: serverTimestamp(),
+    });
+    
+    const userChatDocRef = doc(userChatsCollectionRef, result.id);
+    setDoc(userChatDocRef, { postID: post.id });
+
+    const posterChatDocRef = doc(posterChatsCollectionRef, result.id);
+    setDoc(posterChatDocRef, { postID: post.id });
+
+    setChatId(result.id);
+
     // close the info modal
     setInfoModalOpen(false);
     console.log("balls");
@@ -87,6 +152,12 @@ export default function Skills() {
       setIsChatOpen(true);
     }, 300);
   };
+
+  const getUserProfile = async (userID) => {
+    const userDocRef = doc(db, 'users', userID);
+    const userDoc = await getDoc(userDocRef);
+    return userDoc;
+  }
 
   return (
     <div className="skills-container">
@@ -131,7 +202,7 @@ export default function Skills() {
       <SkillTradeInfoModal
         isOpen={isInfoModalOpen}
         onClose={() => setInfoModalOpen(false)}
-        onAccept={handleAccept}
+        onAccept={() => handleAccept(selectedPost)}
         post={selectedPost}
         user={user}
       />
@@ -139,8 +210,10 @@ export default function Skills() {
         <SkillChat 
           isOpen={isChatOpen}
           onClose={() => setIsChatOpen(false)}
-          skillOwner={{ name: selectedPost.authorName, id: selectedPost.authorID }}
-          skillOffer={selectedPost.offer}
+          skillOwner={getUserProfile(selectedPost.authorID).then(doc => doc.data())}
+          offer={selectedPost.offer}
+          user={user}
+          chatId={chatId}
         />
       )}
     </div>
