@@ -40,7 +40,7 @@ const Contact = () => {
         return {
           id: chatDoc.id,
           ...chatData,
-          user: userDoc.exists() ? userDoc.data() : null // Add user data
+          user: userDoc.exists() ? { id: userDoc.id, ...userDoc.data()} : null // Add user data
         };
       })
     );
@@ -189,6 +189,7 @@ const Contact = () => {
                 src={selectedChat?.user.photoURL} 
                 alt={selectedChat?.user.displayName} 
                 className="chat-avatar" 
+                onClick={() => window.location.href = `/profile/${selectedChat?.user.id}`}
               />
               <div className="chat-header-info">
                 <h2>{selectedChat?.user.displayName}</h2>
