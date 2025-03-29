@@ -111,6 +111,13 @@
   cursor: pointer;
 }
 
+.nav-profile {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #fff;
+  padding: 0.5rem 1rem;
+}
 /******************************
   MOBILE MENU
 *******************************/
