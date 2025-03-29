@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase/firebase';
+import { db } from '../firebase/firebase';
+import { collection, doc, addDoc, getDocs, getDoc, getDocsFromCache, onSnapshot, serverTimestamp, query, where, setDoc } from 'firebase/firestore';
+import { useParams, Outlet } from 'react-router-dom';
 import './Contact.css';
 
 // Hardcoded contacts for testing
@@ -41,8 +45,10 @@ const Contact = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
 
+  const { chatId } = useParams(); // Get chatId from URL params
+  
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
       }
@@ -50,6 +56,10 @@ const Contact = () => {
 
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    const userRef = 0;
+  });
 
   // Simulate fetching messages for a chat
   const fetchMessages = (contactId) => {
@@ -141,44 +151,9 @@ const Contact = () => {
             </div>
           ))}
         </div>
-
-        {selectedChat ? (
-          <div className="chat-panel">
-            <div className="chat-header">
-              <img 
-                src={selectedChat.userImage} 
-                alt={selectedChat.userName} 
-                className="chat-avatar" 
-              />
-              <div className="chat-header-info">
-                <h2>{selectedChat.userName}</h2>
-                <p>{selectedChat.skill} Exchange</p>
-              </div>
-            </div>
-            <div className="chat-messages">
-              {messages.map(message => (
-                <div 
-                  key={message.id} 
-                  className={`chat-message ${message.senderId === (user?.uid || 'currentUser') ? 'sent' : 'received'}`}
-                >
-                  {message.text}
-                </div>
-              ))}
-            </div>
-            <div className="chat-input">
-              <input 
-                type="text"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Type a message..."
-                className="message-input"
-              />
-              <button onClick={handleSendMessage} className="send-button">
-                Send
-              </button>
-            </div>
-          </div>
+        
+        {(chatId || selectedChat) ? (
+          <Outlet /> // Render nested route content when chatId exists
         ) : (
           <div className="no-chat-selected">
             <p>Select a contact to start chatting</p>
