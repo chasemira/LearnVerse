@@ -18,7 +18,7 @@ import {
 import './Skills.css';
 import SkillTradeModal from '../components/SkillTradeModal';
 import SkillTradeInfoModal from '../components/SkillTradeInfoModal';
-import SkillChat from './SkillChat'; // Import the new SkillChat component
+import SkillChat from './SkillChat';
 
 const SkillTradingPost = ({ offer, request, image, onClick }) => (
   <div className="skills-card" onClick={onClick}>
@@ -33,6 +33,7 @@ export default function Skills() {
   const [posts, setPosts] = useState([]);
   const [tooltipVisible, setTooltipVisible] = useState(false);
   const [chatId, setChatId] = useState(null);
+  const [showMyPosts, setShowMyPosts] = useState(true); // toggle state: true for My Posts, false for Other Posts
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -77,10 +78,8 @@ export default function Skills() {
       postsCollectionRef, 
       { ...newPost, authorID: user.uid, authorName: user.displayName }
     );
-    // add the post to the user's posts collection with custom id being the postID from newPost
     const userPostDocRef = doc(userPostsCollectionRef, postDocRef.id);
     setDoc(userPostDocRef, {});
-    
   };
 
   const [search, setSearch] = useState('');
@@ -89,11 +88,20 @@ export default function Skills() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
 
-  const filteredPosts = posts.filter(
-    (post) =>
-      post.offer.toLowerCase().includes(search.toLowerCase()) ||
-      post.request.toLowerCase().includes(search.toLowerCase())
-  );
+  // Update filtering: if toggle is on, show posts from the current user, if off, show posts from others.
+  const filteredPosts = posts.filter((post) => {
+    const matchesSearch = post.offer.toLowerCase().includes(search.toLowerCase()) || 
+                          post.request.toLowerCase().includes(search.toLowerCase());
+    
+    if (user) {
+      if (showMyPosts) {
+        return matchesSearch && post.authorID === user.uid;
+      } else {
+        return matchesSearch && post.authorID !== user.uid;
+      }
+    }
+    return matchesSearch;
+  });
 
   const handleCardClick = (post) => {
     setSelectedPost(post);
@@ -102,18 +110,15 @@ export default function Skills() {
   };
 
   const handleAccept = async (post) => {
-
     console.log(post);
     const userChatsCollectionRef = collection(db, 'users', user.uid, 'chats');
     const posterChatsCollectionRef = collection(db, 'users', post.authorID, 'chats');
     const chatsCollectionRef = collection(db, 'chats');
-    // find if the chat already exists using firestore query
+    
     const userChat = await getDocs(
-      query(
-        userChatsCollectionRef, where('postID', '==', post.id)
-      )
+      query(userChatsCollectionRef, where('postID', '==', post.id))
     );
-    // if the chat already exists, redirect to it
+    
     if (userChat.docs.length > 0) {
       window.location.href = `/chat/${userChat.docs[0].id}`;
       return;
@@ -126,7 +131,6 @@ export default function Skills() {
       postID: post.id,
     });
 
-    // create message collection for the chat
     const messagesCollectionRef = collection(chatsCollectionRef, result.id, 'messages');
     await addDoc(messagesCollectionRef, {
       sender: user.uid,
@@ -141,14 +145,9 @@ export default function Skills() {
     setDoc(posterChatDocRef, { postID: post.id });
 
     setChatId(result.id);
-
-    // close the info modal
     setInfoModalOpen(false);
-    console.log("balls");
     
-    // aafter a brief delay, open the chat modal
     setTimeout(() => {
-      console.log("balls");
       setIsChatOpen(true);
     }, 300);
   };
@@ -164,6 +163,21 @@ export default function Skills() {
       <div className="heading-container">
         <h1 className="skills-heading">Skill Trading Marketplace</h1>
         <div className="skills-search-container">
+          {user && (
+            <div className="filter-toggle-container">
+              <label className="filter-toggle-label">
+                <input
+                  type="checkbox"
+                  checked={showMyPosts}
+                  onChange={() => setShowMyPosts(!showMyPosts)}
+                  className="filter-toggle-input"
+                />
+                <span className="filter-toggle-text">
+                  {showMyPosts ? "My Posts" : "Other Posts"}
+                </span>
+              </label>
+            </div>
+          )}
           <input
             type="text"
             placeholder="Search for a skill..."
