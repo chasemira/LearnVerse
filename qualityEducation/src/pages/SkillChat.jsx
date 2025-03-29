@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { collection, doc, addDoc, getDocs, onSnapshot, query, serverTimestamp, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, doc, addDoc, getDocs, onSnapshot, query, serverTimestamp, orderBy, Timestamp, setDoc } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 import './SkillChat.css';
 
@@ -75,33 +75,20 @@ const SkillChat = ({ isOpen, onClose, skillOwner, offer, user, chatId }) => {
     const chatRef = doc(db, 'chats', chatId);
     const messagesRef = collection(chatRef, 'messages');
 
-    addDoc(messagesRef, {
+    const msgData = {
       text: newMessage,
       sender: user.uid,
       timestamp: serverTimestamp(),
-    });
+    }
+
+    addDoc(messagesRef, msgData);
+    setDoc(chatRef, { 
+      latestMessageText: msgData.text, 
+      latestMessageSender: msgData.sender,
+      latestMessageTimestamp: msgData.timestamp
+    }, { merge: true });
 
     setNewMessage('');
-
-    // // TODO: hard coded for now, change later w backend 
-    // setTimeout(() => {
-    //   const responseMessages = [
-    //     "That sounds great! When would you like to start?",
-    //     "I'm available most evenings. Does that work for you?",
-    //     "Perfect! Would you prefer to meet in person or online?",
-    //     "I've been teaching this skill for about 2 years now.",
-    //     "Let me know if you have any questions about what we'll cover."
-    //   ];
-      
-    //   const responseMessage = {
-    //     id: messages.length + 2,
-    //     sender: skillOwner,
-    //     text: responseMessages[Math.floor(Math.random() * responseMessages.length)],
-    //     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    //   };
-      
-    //   setMessages(prevMessages => [...prevMessages, responseMessage]);
-    // }, 1000);
   };
 
   if (!isOpen) return null;
