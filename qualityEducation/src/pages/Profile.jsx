@@ -1,190 +1,275 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
-import { auth } from '../firebase/firebase'; // Import your Firebase auth instance
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
-import { db } from '../firebase/firebase'; // Import your Firebase Firestore instance
-import { doc, setDoc, getDoc,  onSnapshot } from 'firebase/firestore';
-
+import { db, auth } from '../firebase/firebase';
+import {
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  collection,
+  getDocs
+} from 'firebase/firestore';
 import './Profile.css';
 
-// Simple placeholders for the initial user data
-const initialProfileData = {
-  name: 'Your Name',
-  email: 'youremail@example.com',
-  description: 'Write a short bio or description here...',
-  image: null, // We'll store a preview URL or File here
+/** Creates an empty schedule object with days as keys, each an empty array. */
+function createEmptySchedule() {
+  return {
+    Monday: [],
+    Tuesday: [],
+    Wednesday: [],
+    Thursday: [],
+    Friday: [],
+    Saturday: [],
+    Sunday: []
+  };
+}
+
+/**
+ * Default user data structure
+ */
+const defaultProfileData = {
+  displayName: '',
+  email: '',
+  description: '',
+  photoURL: null,
+  schedule: createEmptySchedule()
 };
 
-const Profile = () => {
-  // Profile data state
-  const [profileData, setProfileData] = useState(initialProfileData);
-  // Controls whether we are editing or just viewing
+export default function Profile() {
+  const [profileData, setProfileData] = useState(defaultProfileData);
   const [isEditing, setIsEditing] = useState(false);
-
   const [editable, setEditable] = useState(false);
 
+  // For uploading a new image
   const [image, setImage] = useState(null);
   const [fileName, setFileName] = useState('No file chosen');
 
-  const navigate = useNavigate(); 
+  // For notifications
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
 
+  const navigate = useNavigate();
   const { uid } = useParams();
-  
-  const fetchUserData = async () => {
-    console.log('Fetching user data for UID:', uid);
-    const userDocRef = doc(db, 'users', uid); // Assuming 'users' is your collection name
-    try {
-      const userDoc = await getDoc(userDocRef);
-      if (userDoc.exists()) {
-        console.log('User data:', userDoc.data());
-        const userData = userDoc.data();
-        setProfileData({... userData }); // Set the image URL if it exists
-      } else {
-        console.log('No such document!');
-      }
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-    }
-  };
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setEditable(user.uid === uid); // Check if the logged-in user is the same as the profile being viewed
-        fetchUserData();
-      }
-    });
-    return () => unsubscribe(); // Cleanup subscription on unmount
-  }, []);
-
-  useEffect(() => {
-    const unsubscribe = onSnapshot(doc(db, 'users', uid), (doc) => {
-      setProfileData(doc.data());
-    });
-
-    return () => unsubscribe(); // Cleanup subscription on unmount
-  }, []);
-
-  // Days of the week and time slots
-  const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  // For the days/times schedule grid
+  const daysOfWeek = Object.keys(createEmptySchedule());
   const timeSlots = [
     '8 AM', '9 AM', '10 AM', '11 AM', '12 PM',
     '1 PM', '2 PM', '3 PM', '4 PM', '5 PM',
     '6 PM', '7 PM', '8 PM'
   ];
-  // We'll store the schedule in an object like:
-  //   { Monday: Set([0,1,2,...]) , Tuesday: Set([...]) ... }
-  const [schedule, setSchedule] = useState(
-    daysOfWeek.reduce((acc, day) => {
-      acc[day] = new Set();
-      return acc;
-    }, {})
-  );
 
-  // Handle text changes (name, email, description)
-  const handleChange = (e) => {
+  // We'll keep a ref to a "debounce" timer for schedule saves
+  const scheduleSaveTimer = useRef(null);
+
+  /**
+   * 1) Check if it's our own profile => set `editable`
+   */
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setEditable(currentUser.uid === uid);
+      }
+    });
+    return () => unsub();
+  }, [uid]);
+
+  /**
+   * 2) On mount, do a single getDoc for the user,
+   *    store it in local state. No real-time snapshot
+   *    => avoids flicker on partial updates.
+   */
+  useEffect(() => {
+    if (!uid) return;
+    async function fetchUser() {
+      const docRef = doc(db, 'users', uid);
+      const snap = await getDoc(docRef);
+      if (!snap.exists()) {
+        // no doc => keep default
+        setProfileData(defaultProfileData);
+        return;
+      }
+      const data = snap.data();
+      if (!data.schedule) {
+        data.schedule = createEmptySchedule();
+      }
+      setProfileData(data);
+    }
+    fetchUser();
+  }, [uid]);
+
+  /**
+   * 3) If it's your profile => fetch notifications once
+   *    (If you want them real-time, you can do onSnapshot for notifications only)
+   */
+  useEffect(() => {
+    if (!uid) return;
+    async function fetchNotifications() {
+      const notifsRef = collection(db, 'users', uid, 'notifications');
+      const notifSnap = await getDocs(notifsRef);
+      const items = notifSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      // Sort by time descending
+      items.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+      setNotifications(items);
+    }
+    fetchNotifications();
+  }, [uid]);
+
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  // If you want real-time notifications, you could do a small onSnapshot() for notifications only,
+  // but that's unlikely to cause flicker with the schedule.
+
+  /** Toggle the notifications dropdown */
+  function handleBellClick() {
+    setShowNotifications(!showNotifications);
+  }
+
+  /** Mark a notification read and go to chat */
+  async function handleNotificationClick(notif) {
+    if (!uid) return;
+    try {
+      const notifRef = doc(db, 'users', uid, 'notifications', notif.id);
+      await updateDoc(notifRef, { read: true });
+      navigate(`/contacts/${notif.chatId}`);
+    } catch (err) {
+      console.error('Failed to mark notification as read:', err);
+    }
+  }
+
+  /** Input changes for name, email, description */
+  function handleChange(e) {
     const { name, value } = e.target;
-    setProfileData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+    setProfileData((prev) => ({ ...prev, [name]: value }));
+  }
 
-  // Handle profile image upload
-  const handleImageChange = (e) => {
+  /**
+   * 4) Pressing "Edit Profile" => toggles isEditing,
+   *    or if isEditing => we do a full doc write to Firestore (merge).
+   *    This is for the text fields + photo. (We do schedule separately.)
+   */
+  async function handleSaveClick() {
+    if (!uid) return;
+    if (!isEditing) {
+      // Start editing
+      setIsEditing(true);
+      return;
+    }
+    // If already in edit mode => "Save"
+    const docRef = doc(db, 'users', uid);
+    const updated = { ...profileData };
+
+    // If a new image is chosen
+    if (image) {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        updated.photoURL = reader.result;
+        await setDoc(docRef, updated, { merge: true });
+        console.log('Saved entire profile (with new photo).');
+      };
+      reader.readAsDataURL(image);
+    } else {
+      await setDoc(docRef, updated, { merge: true });
+      console.log('Saved entire profile (no new photo).');
+    }
+    setIsEditing(false);
+  }
+
+  /** Handling the image input */
+  function handleImageChange(e) {
     if (e.target.files[0]) {
       setImage(e.target.files[0]);
       setFileName(e.target.files[0].name);
     }
-  };
-
-  const saveProfileData = async () => {
-
-    if (!isEditing) {
-      setIsEditing(true); // Enter edit mode
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      const userDocRef = doc(db, 'users', uid); // Assuming 'users' is your collection name
-      try {
-        await setDoc(userDocRef, { ...profileData, photoURL: reader.result }, { merge: true });
-        console.log('Profile data saved successfully!');  
-      } catch (error) {
-        console.error('Error saving profile data:', error);
-      }
-    };
-
-    if (image) {
-      reader.readAsDataURL(image); // Read the image file as a data URL
-    }
-    else { 
-      const userDocRef = doc(db, 'users', uid); // Assuming 'users' is your collection name
-      try {
-        await setDoc(userDocRef, { ...profileData }, { merge: true });
-        console.log('Profile data saved successfully!');  
-      } catch (error) {
-        console.error('Error saving profile data:', error);
-      }
-    }
-    
-      
-
-    setIsEditing(false); // Exit edit mode after saving
-  };
-
-
-  const convertScheduleToJson = (s) => {
-    const scheduleJson = Object.fromEntries(
-      Object.entries(s).map(([day, slots]) => [day, Array.from(slots)])
-    );
-    return JSON.stringify(scheduleJson, null, 2);
   }
 
-  const jsonToSchedule = (json) => {
-    const parsed = JSON.parse(json);
-    const schedule = Object.fromEntries(
-      Object.entries(parsed).map(([day, slots]) => [day, new Set(slots)])
-    );
-    return schedule;
-  }
-
-  useEffect(() => {
-    console.log(convertScheduleToJson(schedule));
-  }, [schedule])
-
-  // Toggle a timeslot in the schedule
-  const toggleTimeSlot = (day, slotIndex) => {
-    setSchedule((prev) => {
-      const newSchedule = { ...prev };
-      const updatedSlots = new Set(newSchedule[day]);
-      if (updatedSlots.has(slotIndex)) {
-        updatedSlots.delete(slotIndex);
+  /**
+   * 5) Toggling a timeslot:
+   *    - Immediately update local state => user sees check/uncheck instantly
+   *    - Debounce a partial update to Firestore => avoid flicker
+   */
+  function toggleTimeSlot(day, slotIndex) {
+    if (!editable) return;
+    setProfileData((prev) => {
+      const clone = structuredClone(prev);
+      const arr = clone.schedule[day] || [];
+      const i = arr.indexOf(slotIndex);
+      if (i >= 0) {
+        arr.splice(i, 1);
       } else {
-        updatedSlots.add(slotIndex);
+        arr.push(slotIndex);
       }
-      newSchedule[day] = updatedSlots;
-      return newSchedule;
+      clone.schedule[day] = arr;
+      return clone;
     });
-    
-  };
 
-  // Display a textual summary of availability
-  const getScheduleSummary = () => {
+    // Debounce the write
+    if (scheduleSaveTimer.current) {
+      clearTimeout(scheduleSaveTimer.current);
+    }
+    scheduleSaveTimer.current = setTimeout(updateScheduleInFirestore, 300);
+  }
+
+  /**
+   * 6) Actually writes the updated schedule to Firestore
+   */
+  async function updateScheduleInFirestore() {
+    if (!uid) return;
+    try {
+      const docRef = doc(db, 'users', uid);
+      await updateDoc(docRef, {
+        schedule: profileData.schedule
+      });
+      console.log('Schedule updated (debounced).');
+    } catch (err) {
+      console.error('Error updating schedule:', err);
+    }
+  }
+
+  /** Summarize the schedule for display */
+  function getScheduleSummary() {
     const lines = [];
-    daysOfWeek.forEach((day) => {
-      if (schedule[day].size > 0) {
-        const sortedIndices = [...schedule[day]].sort((a, b) => a - b);
-        const times = sortedIndices.map((idx) => timeSlots[idx]).join(', ');
-        lines.push(`${day}: ${times}`);
+    for (const day of daysOfWeek) {
+      const arr = profileData.schedule[day] || [];
+      if (arr.length > 0) {
+        const sorted = [...arr].sort((a, b) => a - b);
+        const timeStr = sorted.map((i) => timeSlots[i]).join(', ');
+        lines.push(`${day}: ${timeStr}`);
       }
-    });
+    }
     return lines.length > 0 ? lines.join('\n') : 'No hours selected.';
-  };
+  }
 
   return (
     <div className="profile-container">
+      {/* NOTIFICATIONS BELL (only if it's my profile) */}
+      {editable && (
+        <div className="notification-bell-container">
+          <button className="bell-button" onClick={handleBellClick}>
+            <i className="fas fa-bell"></i>
+            {unreadCount > 0 && <span className="bell-badge">{unreadCount}</span>}
+          </button>
+          {showNotifications && (
+            <div className="notifications-panel">
+              {notifications.length === 0 ? (
+                <p className="no-notifications-text">No notifications yet</p>
+              ) : (
+                notifications.map((notif) => (
+                  <div
+                    key={notif.id}
+                    className={`notification-item ${notif.read ? 'read' : 'unread'}`}
+                    onClick={() => handleNotificationClick(notif)}
+                  >
+                    <p>{notif.message}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* PROFILE CARD */}
       <div className="profile-card">
         <div className="profile-image-section">
@@ -200,17 +285,16 @@ const Profile = () => {
             </div>
           )}
         </div>
-
         <div className="profile-info-section">
           {isEditing ? (
             <>
-              {/* Editable fields */}
               <input
                 type="text"
-                name="name"
+                name="displayName"
                 value={profileData.displayName}
                 onChange={handleChange}
                 className="profile-input"
+                placeholder="Name"
               />
               <input
                 type="email"
@@ -224,11 +308,11 @@ const Profile = () => {
                 value={profileData.description}
                 onChange={handleChange}
                 className="profile-textarea"
-                placeholder='Write a short bio or description here...'
+                placeholder="Write a short bio..."
               />
               <div className="profile-image-upload">
                 <label htmlFor="profileImage" className="upload-label">
-                  {fileName ? fileName : 'Upload Profile Image'} 
+                  {fileName ? fileName : 'Upload Profile Image'}
                 </label>
                 <input
                   type="file"
@@ -241,39 +325,33 @@ const Profile = () => {
             </>
           ) : (
             <>
-              {/* Display-mode fields */}
               <h2 className="profile-name">{profileData.displayName}</h2>
               <p className="profile-email">{profileData.email}</p>
               <p className="profile-description">{profileData.description}</p>
             </>
           )}
 
-          {
-            editable && (
-              <div className="profile-buttons">
-                <button
-                  className="edit-button"
-                  onClick={() => saveProfileData()}
-                >
-                  {isEditing ? 'Save' : 'Edit Profile'}
-                </button>
-                <button
-                  className="edit-button"
-                  onClick={() => navigate('/logout')}
-                >
-                  Logout
-                </button>
-              </div>
-            )
-          }
+          {editable && (
+            <div className="profile-buttons">
+              <button className="edit-button" onClick={handleSaveClick}>
+                {isEditing ? 'Save' : 'Edit Profile'}
+              </button>
+              <button
+                className="edit-button"
+                onClick={() => navigate('/logout')}
+              >
+                Logout
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* WEEKLY SCHEDULE */}
+      {/* SCHEDULE */}
       <div className="schedule-container">
         <h3 className="schedule-heading">Select Your Availability</h3>
         <div className="schedule-grid">
-          {/* Header row with day names */}
+          {/* Header row */}
           <div className="schedule-grid-header">
             <div className="schedule-grid-cell time-label" />
             {daysOfWeek.map((day) => (
@@ -283,14 +361,13 @@ const Profile = () => {
             ))}
           </div>
 
-          {/* Rows for each timeslot */}
+          {/* Time slots */}
           {timeSlots.map((timeLabel, rowIndex) => (
             <div key={timeLabel} className="schedule-grid-row">
-              <div className="schedule-grid-cell time-label">
-                {timeLabel}
-              </div>
+              <div className="schedule-grid-cell time-label">{timeLabel}</div>
               {daysOfWeek.map((day) => {
-                const isSelected = schedule[day].has(rowIndex);
+                const arr = profileData.schedule[day] || [];
+                const isSelected = arr.includes(rowIndex);
                 return (
                   <div
                     key={day}
@@ -308,13 +385,11 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* SCHEDULE SUMMARY (text-based) */}
+      {/* SCHEDULE SUMMARY */}
       <div className="schedule-summary">
         <h4>Availability Summary</h4>
         <pre>{getScheduleSummary()}</pre>
       </div>
     </div>
   );
-};
-
-export default Profile;
+}
