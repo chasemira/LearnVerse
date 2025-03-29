@@ -120,29 +120,35 @@ export default function Skills() {
     );
     
     if (userChat.docs.length > 0) {
-      window.location.href = `/chat/${userChat.docs[0].id}`;
+      window.location.href = `/contacts/${userChat.docs[0].id}`;
       return;
     }
+
+    const msgData = {
+      sender: user.uid,
+      text: `I accept your offer of ${post.offer} for ${post.request}.`,
+      timestamp: serverTimestamp(),
+    };
+
 
     const result = await addDoc(chatsCollectionRef, {
       posterID: post.authorID,
       accepteeID: user.uid,
       skill: post.offer,
-      postID: post.id,
+      postID: post.id, 
+      latestMessageSender: msgData.sender, 
+      latestMessageText: msgData.text,
+      latestMessageTimestamp: msgData.timestamp
     });
 
     const messagesCollectionRef = collection(chatsCollectionRef, result.id, 'messages');
-    await addDoc(messagesCollectionRef, {
-      sender: user.uid,
-      text: `I accept your offer of ${post.offer} for ${post.request}.`,
-      timestamp: serverTimestamp(),
-    });
+    await addDoc(messagesCollectionRef, msgData);
     
     const userChatDocRef = doc(userChatsCollectionRef, result.id);
-    setDoc(userChatDocRef, { postID: post.id });
+    setDoc(userChatDocRef, { postID: post.id, latestClientMessage: {} });
 
     const posterChatDocRef = doc(posterChatsCollectionRef, result.id);
-    setDoc(posterChatDocRef, { postID: post.id });
+    setDoc(posterChatDocRef, { postID: post.id, latestClientMessage: {} });
 
     setChatId(result.id);
     setInfoModalOpen(false);

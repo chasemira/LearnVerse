@@ -21,9 +21,8 @@ function App() {
         <Navbar />
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/contacts" element={<Contact />} >
-            <Route path=":chatId" element={<Chat />} /> {/* Nested route for chatId */}
-          </Route>
+          <Route path="/contacts" element={<Contact />} />
+          <Route path="/contacts/:chatId" element={<Contact />} />
           <Route path="/multilingual" element={<Multilingual />} />
           <Route path="/skills" element={<Skills />} />
           <Route path="/login" element={<Login />} />
