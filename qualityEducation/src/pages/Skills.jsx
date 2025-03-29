@@ -33,7 +33,7 @@ export default function Skills() {
   const [tooltipVisible, setTooltipVisible] = useState(false);
 
   // For toggling between "My Posts" and "Other Posts"
-  const [showMyPosts, setShowMyPosts] = useState(true);
+  const [showMyPosts, setShowMyPosts] = useState(false);
 
   // For search
   const [search, setSearch] = useState('');
