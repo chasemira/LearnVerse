@@ -12,14 +12,13 @@ import Multilingual from './pages/Multilingual';
 import Skills from './pages/Skills';
 import Login from './pages/Login';
 import Logout from './pages/Logout';
-import Profile from './pages/Profile';   
+import Profile from './pages/Profile';
 
 function App() {
   return (
     <TranslationProvider>
       <Router>
         <Navbar />
-
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/contacts" element={<Contact />} >
