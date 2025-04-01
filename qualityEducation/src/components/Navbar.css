@@ -2,7 +2,7 @@
   NAVBAR
 *******************************/
 .navbar {
-  background: linear-gradient(90deg, #000000 0%, #000000 100%);
+  background: var(--navbar-bg);
   height: 80px;
   display: flex;
   align-items: center;
@@ -13,7 +13,8 @@
 
 /* LOGO */
 .navbar-logo {
-  color: #fff;
+  /* color: #fff; */
+  color: var(--text-color);
   margin-left: 20px;
   cursor: pointer;
   text-decoration: none;
@@ -46,7 +47,8 @@
 }
 .fa-bars,
 .fa-times {
-  color: #fff;
+  /* color: #fff; */
+  color: var(--text-color);
   font-size: 1.8rem;
 }
 
@@ -69,7 +71,8 @@
   height: 80px;
 }
 .nav-links {
-  color: #fff;
+  /* color: #fff; */
+  color: var(--text-color);
   text-decoration: none;
   padding: 0.5rem 1rem;
   transition: background-color 0.2s ease;
@@ -78,6 +81,24 @@
   background-color: #522fff;
   border-radius: 4px;
   color: white;
+}
+
+/******************************
+  THEME TOGGLE
+*******************************/
+/* Add a style for the theme toggle button */
+.theme-toggle {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  font-size: 1.5rem;
+  cursor: pointer;
+  margin-left: 10px;
+  padding: 0.5rem;
+}
+
+.theme-toggle:hover {
+  color: var(--primary-color);
 }
 
 /******************************
