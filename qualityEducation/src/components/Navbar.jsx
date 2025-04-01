@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { auth } from '../firebase/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import './Navbar.css';
 import Dropdown from './Dropdown'; 
 import logo from './logo.webp'; 
-
+import { ThemeContext } from '../context/ThemeContext';
 
 const serviceMenuItems = [
   {
@@ -32,8 +32,17 @@ function Navbar() {
   const [click, setClick] = useState(false);
   const [servicesDropdown, setServicesDropdown] = useState(false);
   const [profileDropdown, setProfileDropdown] = useState(false);
-
   const [user, setUser] = useState(null);
+  
+  // Try-catch to prevent errors if context isn't available yet
+  let themeContextValue = { theme: 'dark', toggleTheme: () => {} };
+  try {
+    themeContextValue = useContext(ThemeContext);
+  } catch (error) {
+    console.error("Error with ThemeContext:", error);
+  }
+  
+  const { theme, toggleTheme } = themeContextValue;
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -57,8 +66,6 @@ function Navbar() {
   const onMouseLeaveServices = () => {
     setServicesDropdown(false);
   };
-
-
 
   return (
     <>
@@ -109,7 +116,24 @@ function Navbar() {
               </li>
             )
           }
-
+          
+          {/* Theme toggle in mobile menu */}
+          <li className="nav-item">
+            <button 
+              className="nav-links" 
+              onClick={() => {
+                toggleTheme();
+                closeMobileMenu();
+              }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+            >
+              {theme === 'dark' ? (
+                <><i className="fas fa-sun" /></>
+              ) : (
+                <><i className="fas fa-moon" /></>
+              )}
+            </button>
+          </li>
         </ul>
 
         {/* SEARCH BAR OR BUTTONS ON THE RIGHT */}
@@ -119,7 +143,7 @@ function Navbar() {
             <i className="fas fa-search" />
           </div>
 
-          {/* === NEW: A user icon (only if the user is logged in) === */}
+          {/* User icon (only if the user is logged in) */}
           {user && (
             <Link to={`/profile/${user.uid}`} className="nav-profile" onClick={closeMobileMenu}>
               <i

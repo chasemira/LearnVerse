@@ -1,32 +1,53 @@
+/* src/index.css */
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #000000;
+  /* Define theme variables with dark as default */
+  --background-color: #000000;
+  --text-color: rgba(255, 255, 255, 0.87);
+  --primary-color: #522fff;
+  --secondary-color: #10258f;
+  --hover-color: #3d51b0;
+  --navbar-bg: linear-gradient(90deg, #000000 0%, #000000 100%);
+  --input-bg: #ffffff;
+  --input-text: #000000;
+  --button-bg: #000000;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  
+  color: var(--text-color);
+  background-color: var(--background-color);
+}
+
+/* Light theme variables */
+[data-theme='light'] {
+  --background-color: #ffffff;
+  --text-color: #000000;
+  --primary-color: #522fff;
+  --secondary-color: #10258f;
+  --hover-color: #3d51b0;
+  --navbar-bg: linear-gradient(90deg, #f5f5f5 0%, #e0e0e0 100%);
+  --input-bg: #ffffff;
+  --input-text: #000000;
+  --button-bg: #f9f9f9;
 }
 
 a {
   font-weight: 500;
-  color: #10258f;
+  color: var(--secondary-color);
   text-decoration: inherit;
 }
 a:hover {
-  color: #3d51b0;
+  color: var(--hover-color);
 }
 
 body {
   margin: 0;
-  /* REMOVED these properties that were causing layout issues */
-  /* display: flex; */
-  /* place-items: center; */
   min-width: 320px;
   min-height: 100vh;
 }
@@ -44,27 +65,14 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #000000;
+  background-color: var(--button-bg);
   cursor: pointer;
   transition: border-color 0.25s;
 }
 button:hover {
-  border-color: #3d51b0;
+  border-color: var(--hover-color);
 }
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #000000;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #3d51b0;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
 }
