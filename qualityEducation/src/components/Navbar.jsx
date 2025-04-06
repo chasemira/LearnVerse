@@ -4,7 +4,7 @@ import { auth } from '../firebase/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import './Navbar.css';
 import Dropdown from './Dropdown'; 
-import logo from './logo.webp'; 
+import logo from './logoWEB.png'; 
 import { ThemeContext } from '../context/ThemeContext';
 
 const serviceMenuItems = [
@@ -73,7 +73,7 @@ function Navbar() {
         {/* LOGO / BRAND */}
         <Link to="/" className="navbar-logo" onClick={closeMobileMenu}>
           <img src={logo} alt="logo" className="nav-logo-img" />
-          LearnVerse
+          <span className="logo-bold">LEARN</span>VERSE
         </Link>
 
         {/* MOBILE MENU ICON */}
