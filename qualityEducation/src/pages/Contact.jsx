@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase/firebase';
 import { db } from '../firebase/firebase';
-import { collection, doc, addDoc, getDocs, getDoc, orderBy, onSnapshot, serverTimestamp, query, where, setDoc } from 'firebase/firestore';
+import { collection, doc, addDoc, getDocs, getDoc, orderBy, onSnapshot, serverTimestamp, Timestamp, query, where, setDoc } from 'firebase/firestore';
 import { useParams, useNavigate } from 'react-router-dom';
 import './Contact.css';
 
@@ -189,7 +189,7 @@ const Contact = () => {
                 src={selectedChat?.user.photoURL} 
                 alt={selectedChat?.user.displayName} 
                 className="chat-avatar" 
-                onClick={() => window.location.href = `/profile/${selectedChat?.user.id}`}
+                onClick={() => window.location.href = `/profile/${selectedChat}`}
               />
               <div className="chat-header-info">
                 <h2>{selectedChat?.user.displayName}</h2>
