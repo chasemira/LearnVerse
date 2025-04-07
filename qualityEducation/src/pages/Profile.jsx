@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from '../firebase/firebase';
 import {
@@ -40,6 +40,7 @@ export default function Profile() {
   const [profileData, setProfileData] = useState(defaultProfileData);
   const [isEditing, setIsEditing] = useState(false);
   const [editable, setEditable] = useState(false);
+  const [userExists, setUserExists] = useState(true);
 
   // For uploading a new image
   const [image, setImage] = useState(null);
@@ -87,7 +88,7 @@ export default function Profile() {
       const snap = await getDoc(docRef);
       if (!snap.exists()) {
         // no doc => keep default
-        setProfileData(defaultProfileData);
+        setUserExists(false);
         return;
       }
       const data = snap.data();
@@ -239,6 +240,17 @@ export default function Profile() {
       }
     }
     return lines.length > 0 ? lines.join('\n') : 'No hours selected.';
+  }
+
+  if (!userExists) {
+    return (
+      <>
+      <div className="error-container">
+        <p className="error-text">404: User does not exist.</p>
+        <Link to="/" className="back-link">Back to Home</Link>
+      </div>
+      </>
+    )
   }
 
   return (

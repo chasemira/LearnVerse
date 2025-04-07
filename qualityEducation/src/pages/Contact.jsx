@@ -14,18 +14,24 @@ const Contact = () => {
   const { chatId } = useParams(); // Get chatId from URL params
   const navigate = useNavigate();
 
-  const fetchUserContacts = async (uid, chatId) => {
-    const userDocRef = doc(db, 'users', uid); // Assuming 'users' is your collection name
+  const getChatQuery = async (uid) => {
+    const userDocRef = doc(db, 'users', uid); 
     const userChatsCollectionRef = collection(userDocRef, 'chats');
     const querySnapshot = await getDocs(userChatsCollectionRef);
 
-    const chatIds = querySnapshot.docs.map(doc => doc.id); // Extract chat IDs
+    const chatIds = querySnapshot.docs.map(doc => doc.id).filter(id => id !== 'placeholder'); // Extract chat IDs
     const chatsCollectionRef = collection(db, 'chats');
-    const chatsQuery = query(chatsCollectionRef, where('__name__', 'in', chatIds)); // Query chats by IDs
-    const chatsSnapshot = await getDocs(chatsQuery);
+    const chatsQuery = query(
+      chatsCollectionRef, where('__name__', 'in', chatIds), orderBy('latestMessageTimestamp', 'desc')
+    ); // Query chats by IDs
+    
 
-    const userContacts = await Promise.all(
-      chatsSnapshot.docs.map(async (chatDoc) => {
+    return chatsQuery; 
+  }
+
+  const getContacts = async (uid, snapshot) => {
+    return await Promise.all(
+      snapshot.docs.map(async (chatDoc) => {
         const chatData = chatDoc.data();
 
         let userId;
@@ -36,6 +42,7 @@ const Contact = () => {
         }
 
         const userDoc = await getDoc(doc(db, 'users', userId)); // Fetch user data
+        
         console.log(userDoc.data());
         return {
           id: chatDoc.id,
@@ -45,6 +52,14 @@ const Contact = () => {
       })
     );
 
+  }
+
+  const fetchUserContacts = async (uid, chatId) => {
+
+    const chatsQuery = await getChatQuery(uid); // Get chat query
+    const chatsSnapshot = await getDocs(chatsQuery); // Fetch chat documents
+
+    const userContacts = await getContacts(uid, chatsSnapshot); // Get contacts from chat documents
     console.log(userContacts);
     setContacts(userContacts); // Update state with fetched contacts
     if (chatId) {
@@ -62,6 +77,22 @@ const Contact = () => {
 
     return () => unsubscribe();
   }, [chatId]);
+
+    // refresh contact order by latestMessageTimestamp when there is a new message
+    useEffect(() => {
+      async function updateContacts() {
+        if (!user) return;
+        const chatsQuery = await getChatQuery(user.uid); // Get chat query
+        const unsubscribe = onSnapshot(chatsQuery, async (snapshot) => {
+          const userContacts = await getContacts(user.uid, snapshot); // Get contacts from chat documents
+          console.log(userContacts);
+          setContacts(userContacts); // Update state with fetched contacts
+        });
+
+        return () => unsubscribe(); // Clean up the listener on unmount
+      }
+      updateContacts();
+    }, [user]);
 
 
   const [messages, setMessages] = useState([]);
@@ -189,7 +220,7 @@ const Contact = () => {
                 src={selectedChat?.user.photoURL} 
                 alt={selectedChat?.user.displayName} 
                 className="chat-avatar" 
-                onClick={() => window.location.href = `/profile/${selectedChat}`}
+                onClick={() => window.location.href = `/profile/${selectedChat?.user.id}`}
               />
               <div className="chat-header-info">
                 <h2>{selectedChat?.user.displayName}</h2>
