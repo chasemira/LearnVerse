@@ -108,6 +108,12 @@ const Contact = () => {
   useEffect(() => {
       if (chatId) {
         const chatRef = doc(db, 'chats', chatId);
+        const chat = getDoc(chatRef);
+        if (!chat.exists()) {
+          setSelectedChat(null);
+          setMessages([]);
+          return;
+        }
         const messagesRef = collection(chatRef, 'messages');
         const q = query(messagesRef, orderBy('timestamp', 'asc'));
         fetchMessages(q);
@@ -117,6 +123,12 @@ const Contact = () => {
   useEffect(() => {
     if (chatId) {
       const chatRef = doc(db, 'chats', chatId);
+      const chat = getDoc(chatRef);
+      if (!chat.exists()) {
+        setSelectedChat(null);
+        setMessages([]);
+        return;
+      }
       const messagesRef = collection(chatRef, 'messages');
       const q = query(messagesRef, orderBy('timestamp', 'asc'));
       // snaopshot listener for real-time updates order by timestamp
