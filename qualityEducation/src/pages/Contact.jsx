@@ -106,24 +106,27 @@ const Contact = () => {
   };
 
   useEffect(() => {
-      if (chatId) {
-        const chatRef = doc(db, 'chats', chatId);
-        const chat = getDoc(chatRef);
-        if (!chat.exists()) {
-          setSelectedChat(null);
-          setMessages([]);
-          return;
-        }
-        const messagesRef = collection(chatRef, 'messages');
-        const q = query(messagesRef, orderBy('timestamp', 'asc'));
-        fetchMessages(q);
+      async function initFetchMessages() {
+          if (!chatId) return;
+          const chatRef = doc(db, 'chats', chatId);
+          const chat = await getDoc(chatRef);
+          if (!chat.exists()) {
+            setSelectedChat(null);
+            setMessages([]);
+            return;
+          }
+          const messagesRef = collection(chatRef, 'messages');
+          const q = query(messagesRef, orderBy('timestamp', 'asc'));
+          fetchMessages(q); // Fetch messages
       }
+      initFetchMessages();
   }, [chatId]);
 
   useEffect(() => {
-    if (chatId) {
+    async function updateMessages() {
+      if (!chatId) return;
       const chatRef = doc(db, 'chats', chatId);
-      const chat = getDoc(chatRef);
+      const chat = await getDoc(chatRef);
       if (!chat.exists()) {
         setSelectedChat(null);
         setMessages([]);
@@ -131,25 +134,14 @@ const Contact = () => {
       }
       const messagesRef = collection(chatRef, 'messages');
       const q = query(messagesRef, orderBy('timestamp', 'asc'));
-      // snaopshot listener for real-time updates order by timestamp
       const unsubscribe = onSnapshot(q, (snapshot) => {
-          const messagesData = snapshot.docs.map((doc) => {
-              const data = doc.data();
-              // firebase has this weird thing where serverTimestamps only
-              // has a real value at the moment a request hits the server
-              // so we need to check if the timestamp will be updated later (hasPendingWrites)
-              // and if so, we set it to serverTimestamp() to avoid showing "undefined"
-              console.log(data);
-              if (!data.timestamp && snapshot.metadata.hasPendingWrites) {
-                  data.timestamp = Timestamp.now();
-              }
-              return { id: doc.id, ...data };
-          });
-          console.log(messagesData);
-          setMessages(messagesData);
+        const messagesData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        setMessages(messagesData);
       });
+
       return () => unsubscribe(); // Clean up the listener on unmount
     }
+    updateMessages();
   }, [chatId]);
 
 
