@@ -12,7 +12,8 @@ import {
   query,
   where,
   setDoc,
-  getDocsFromCache
+  getDocsFromCache,
+  getDoc
 } from 'firebase/firestore';
 import './Skills.css';
 import SkillTradeModal from '../components/SkillTradeModal';
@@ -47,7 +48,16 @@ export default function Skills() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (loggedUser) => {
-      setUser(loggedUser);
+      async function fetchUserData() {
+        if (loggedUser) {
+          const userDocRef = doc(db, 'users', loggedUser.uid);
+          const userDoc = await getDoc(userDocRef);
+          if (userDoc.exists()) {
+            setUser({ uid: loggedUser.uid, ...userDoc.data() });
+          }
+        }
+      }
+      fetchUserData();
     });
     return unsubscribe;
   }, []);
