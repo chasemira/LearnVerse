@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase/firebase';
 import { db } from '../firebase/firebase';
@@ -10,9 +10,20 @@ const Contact = () => {
   const [user, setUser] = useState(null);
   const [contacts, setContacts] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
+  const messagesAreaRef = useRef(null);
 
-  const { chatId } = useParams(); // Get chatId from URL params
+  const [chatId, setChatId] = useState(useParams().chatId || null);
   const navigate = useNavigate();
+
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+
+  useEffect(() => {
+    if (messagesAreaRef.current) {
+      messagesAreaRef.current.scrollTop = messagesAreaRef.current.scrollHeight;
+    }
+  }, [messages, messages]);
+
 
   const getChatQuery = async (uid) => {
     const userDocRef = doc(db, 'users', uid); 
@@ -43,7 +54,6 @@ const Contact = () => {
 
         const userDoc = await getDoc(doc(db, 'users', userId)); // Fetch user data
         
-        console.log(userDoc.data());
         return {
           id: chatDoc.id,
           ...chatData,
@@ -60,7 +70,6 @@ const Contact = () => {
     const chatsSnapshot = await getDocs(chatsQuery); // Fetch chat documents
 
     const userContacts = await getContacts(uid, chatsSnapshot); // Get contacts from chat documents
-    console.log(userContacts);
     setContacts(userContacts); // Update state with fetched contacts
     if (chatId) {
       setSelectedChat(userContacts.find(contact => contact.id === chatId));
@@ -85,7 +94,6 @@ const Contact = () => {
         const chatsQuery = await getChatQuery(user.uid); // Get chat query
         const unsubscribe = onSnapshot(chatsQuery, async (snapshot) => {
           const userContacts = await getContacts(user.uid, snapshot); // Get contacts from chat documents
-          console.log(userContacts);
           setContacts(userContacts); // Update state with fetched contacts
         });
 
@@ -94,58 +102,65 @@ const Contact = () => {
       updateContacts();
     }, [user]);
 
-
-  const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState('');
-
-  const fetchMessages = async (query) => {
-
-      const querySnapshot = await getDocs(query);
-      const messagesData = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      setMessages(messagesData);
-  };
-
   useEffect(() => {
-      async function initFetchMessages() {
-          if (!chatId) return;
+      async function fetchMessages() {
+          if (!chatId || !user) return;
           const chatRef = doc(db, 'chats', chatId);
+          const userChatRef = doc(db, 'users', user.uid, 'chats', chatId);
+
           const chat = await getDoc(chatRef);
           if (!chat.exists()) {
             setSelectedChat(null);
             setMessages([]);
+            navigate('/contacts'); // Redirect to contacts page if chat doesn't exist
             return;
           }
           const messagesRef = collection(chatRef, 'messages');
           const q = query(messagesRef, orderBy('timestamp', 'asc'));
-          fetchMessages(q); // Fetch messages
+          const querySnapshot = await getDocs(q);
+          const messagesData = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+          setMessages(messagesData);
+          setDoc(userChatRef, { 
+            latestMessageId: messagesData[messagesData.length - 1]?.id 
+          }, { merge: true });
       }
-      initFetchMessages();
-  }, [chatId]);
+      fetchMessages();
+  }, [chatId, user]);
 
   useEffect(() => {
     async function updateMessages() {
-      if (!chatId) return;
+      if (!chatId || !user) return;
+
       const chatRef = doc(db, 'chats', chatId);
+      const userChatRef = doc(db, 'users', user.uid, 'chats', chatId);
       const chat = await getDoc(chatRef);
       if (!chat.exists()) {
         setSelectedChat(null);
         setMessages([]);
+        navigate('/contacts'); // Redirect to contacts page if chat doesn't exist
         return;
       }
       const messagesRef = collection(chatRef, 'messages');
       const q = query(messagesRef, orderBy('timestamp', 'asc'));
       const unsubscribe = onSnapshot(q, (snapshot) => {
         const messagesData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        setMessages(messagesData);
+        // WHY
+        const currentChatId = window.location.pathname.split('/').pop()
+        if (messagesData.some(msg => msg.id && msg.chatId === currentChatId)) {
+          setMessages(messagesData); 
+          setDoc(userChatRef, { 
+            latestMessageId: messagesData[messagesData.length - 1]?.id 
+          }, { merge: true });
+        } 
+        
       });
 
       return () => unsubscribe(); // Clean up the listener on unmount
     }
     updateMessages();
-  }, [chatId]);
+  }, [chatId, user, selectedChat]);
 
-
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
       if (newMessage.trim() === '') return;
 
       const chatRef = doc(db, 'chats', chatId);
@@ -155,14 +170,16 @@ const Contact = () => {
           text: newMessage,
           sender: user.uid,
           timestamp: serverTimestamp(),
+          chatId: chatId,
       }
 
-      addDoc(messagesRef, msgData);
+      const msgDoc = await addDoc(messagesRef, msgData);
       setDoc(chatRef, { 
         latestMessageText: msgData.text, 
-        latestMessageSender: msgData.sender,
-        latestMessageTimestamp: msgData.timestamp
+        latestMessageId: msgDoc.id,
+        latestMessageTimestamp: serverTimestamp(),
       }, { merge: true });
+
 
       setNewMessage('');
   };
@@ -172,6 +189,18 @@ const Contact = () => {
           handleSendMessage();
       }
   };
+
+  const checkMessagesSynced = async (contact) => {
+    if (!chatId || !user) return;
+    const userChatRef = doc(db, 'users', user.uid, 'chats', chatId);
+
+    const chatDoc = await getDoc(userChatRef);
+
+
+
+    
+    return chatDoc.exists() && chatDoc.data().latestMessageId === contact.latestMessageId;
+  }
 
   const renderContent = () => {
     if (!user) {
@@ -200,6 +229,7 @@ const Contact = () => {
               className={`contact-item ${selectedChat && selectedChat.id === contact.id ? 'active' : ''}`}
               onClick={() => {
                 setSelectedChat(contact);
+                setChatId(contact.id);
                 navigate(`/contacts/${contact.id}`)
               }}
             >
@@ -211,7 +241,10 @@ const Contact = () => {
               <div className="contact-info">
                 <h3>{contact.user.displayName}</h3>
                 <p>{contact.skill} Exchange</p>
-                <p className="last-message">{contact.latestMessageText}</p>
+                <p 
+                  className={`last-messsage${checkMessagesSynced(contact) ? '' : '-unread'}`}>
+                    {contact.latestMessageText}
+                </p>
               </div>
             </div>
           ))}
@@ -231,7 +264,7 @@ const Contact = () => {
                 <p>{selectedChat?.skill} Exchange</p>
               </div>
             </div>
-            <div className="chat-messages">
+            <div className="chat-messages" ref={messagesAreaRef}>
               {messages.map(message => (
                 <div 
                   key={message.id} 

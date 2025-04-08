@@ -135,6 +135,12 @@
   transition: all 0.3s ease;
 }
 
+.last-message .unread {
+  color: #9b30ff;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
 /* Chat panel styles */
 .chat-panel {
   width: 70%;
