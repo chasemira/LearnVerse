@@ -89,16 +89,11 @@ function Navbar() {
             </Link>
           </li>
 
-          {/* Services Dropdown */}
-          <li
-            className="nav-item"
-            onMouseEnter={onMouseEnterServices}
-            onMouseLeave={onMouseLeaveServices}
-          >
-            <Link to="/services" className="nav-links" onClick={closeMobileMenu}>
-              Services <i className="fas fa-caret-down" />
+          {/* Replace Services Dropdown with Skills Marketplace */}
+          <li className="nav-item">
+            <Link to="/skills" className="nav-links" onClick={closeMobileMenu}>
+              Skills Marketplace
             </Link>
-            {servicesDropdown && <Dropdown closeMenu={closeMobileMenu} paths={serviceMenuItems} />}
           </li>
 
           <li className="nav-item">
