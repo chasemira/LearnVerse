@@ -1,5 +1,7 @@
 # LearnVerse
 
+<img src="qualityEducation/src/components/logoWEB.png" alt="logo" width="100" height="100">
+
 **Skills as currency — a community marketplace that makes quality learning accessible.**
 
 LearnVerse is a community-driven platform (associated with Simon Fraser University) where people trade skills instead of cash. It's built to lower financial barriers to education by letting users offer and request lessons, connect through real-time chat, and confirm skill-exchange transactions. We're running on a React.js frontend + Firebase backend and are integrating Azure Cognitive Services for real-time translation and voice capabilities.
