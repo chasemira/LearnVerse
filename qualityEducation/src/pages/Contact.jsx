@@ -31,6 +31,13 @@ const Contact = () => {
     const querySnapshot = await getDocs(userChatsCollectionRef);
 
     const chatIds = querySnapshot.docs.map(doc => doc.id).filter(id => id !== 'placeholder'); // Extract chat IDs
+    
+    // If no chats exist, return a query that will return no results
+    if (chatIds.length === 0) {
+      const chatsCollectionRef = collection(db, 'chats');
+      return query(chatsCollectionRef, where('__name__', '==', 'nonexistent'));
+    }
+    
     const chatsCollectionRef = collection(db, 'chats');
     const chatsQuery = query(
       chatsCollectionRef, where('__name__', 'in', chatIds), orderBy('latestMessageTimestamp', 'desc')
