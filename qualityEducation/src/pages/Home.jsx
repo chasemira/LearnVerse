@@ -5,6 +5,7 @@ import educImg1 from './home-pics/educ.jpg';
 import educImg2 from './home-pics/educ2.jpg';
 import educImg3 from './home-pics/educ3.jpg';
 import educImg4 from './home-pics/educ4.webp';
+// import { translateText } from '../hooks/useTranslation'; // Import the translation hook
 
 export default function Home() {
   const resourcesRef = useRef(null);
