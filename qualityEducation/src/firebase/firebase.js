@@ -10,10 +10,11 @@ import { getFirestore } from "firebase/firestore";
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  apiKey: "AIzaSyCaTE7Rn4ya-KQDo848m5-zWkIW3nCsHK8",
   authDomain: "learnverse-hack-the-sem-2025.firebaseapp.com",
   projectId: "learnverse-hack-the-sem-2025",
-  storageBucket: "learnverse-hack-the-sem-2025.firebasestorage.app",
+  // storageBucket: "learnverse-hack-the-sem-2025.firebasestorage.app",
+  storageBucket: "learnverse-hack-the-sem-2025.appspot.com",
   messagingSenderId: "737545318031",
   appId: "1:737545318031:web:0518fbef05eb5bf0924afa",
   measurementId: "G-9WJLPCK6N6"
