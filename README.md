@@ -4,7 +4,8 @@
 
 **Skills as currency — a community marketplace that makes quality learning accessible.**
 
-LearnVerse is a community-driven platform (associated with Simon Fraser University) where people trade skills instead of cash. It's built to lower financial barriers to education by letting users offer and request lessons, connect through real-time chat, and confirm skill-exchange transactions. We're running on a React.js frontend + Firebase backend and are integrating Azure Cognitive Services for real-time translation and voice capabilities.
+LearnVerse is a universe of learning opportunities aligned with the UN’s Quality Education—breaking down financial barriers by letting people trade skills as currency and making education truly accessible. 
+We're running on a React.js frontend + Firebase backend and are integrating Azure Cognitive Services for real-time translation and voice capabilities.
 
 ---
 
