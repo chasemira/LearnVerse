@@ -143,7 +143,7 @@ function Navbar() {
             <Link to={`/profile/${user.uid}`} className="nav-profile" onClick={closeMobileMenu}>
               <i
                 className="fas fa-user-circle"
-                style={{ fontSize: '1.8rem', color: '#fff', marginLeft: '16px' }}
+                style={{ fontSize: '1.8rem', color: 'var(--text-color)', marginLeft: '16px' }}
               />
             </Link>
           )}

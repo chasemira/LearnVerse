@@ -376,3 +376,42 @@ a.register-link:hover {
     width: 100%;
   }
 }
+
+[data-theme='light'] .auth-container,
+[data-theme='light'] .auth-form-container {
+  background-color: #ffffff;
+  color: #24163b;
+  box-shadow: 0 8px 24px rgba(106, 13, 173, 0.12), 0 0 0 1px rgba(106, 13, 173, 0.12);
+}
+
+[data-theme='light'] h2 {
+  color: #2a1b44;
+}
+
+[data-theme='light'] .subtitle,
+[data-theme='light'] .account-toggle,
+[data-theme='light'] .divider {
+  color: #6f6387;
+}
+
+[data-theme='light'] .auth-input,
+[data-theme='light'] .social-btn {
+  background-color: #f7f3ff;
+  color: #2a1b44;
+  border-color: #ddd2ef;
+}
+
+[data-theme='light'] .auth-input::placeholder {
+  color: #7b7090;
+}
+
+[data-theme='light'] .social-btn:hover {
+  background-color: #ede5ff;
+}
+
+[data-theme='light'] .divider::before,
+[data-theme='light'] .divider::after,
+[data-theme='light'] .auth-separator {
+  border-bottom-color: #ddd2ef;
+  background-color: #ddd2ef;
+}

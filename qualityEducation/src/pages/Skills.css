@@ -281,7 +281,7 @@
 }
 
 /* Updated Create Skill Trade Post Modal Styles */
-.fab {
+.skills-fab {
   position: fixed;
   bottom: 32px;
   right: 32px;
@@ -303,14 +303,14 @@
   z-index: 10;
 }
 
-.fab:hover {
+.skills-fab:hover {
   background: linear-gradient(135deg, #7b14c4, #a742ff);
   transform: scale(1.1) rotate(90deg);
   box-shadow: 0 6px 16px rgba(106, 13, 173, 0.6),
               0 0 30px rgba(155, 48, 255, 0.4);
 }
 
-.fab:focus {
+.skills-fab:focus {
   outline: none;
   box-shadow: 0 0 0 3px rgba(155, 48, 255, 0.6),
               0 6px 16px rgba(106, 13, 173, 0.6);
@@ -459,4 +459,57 @@
 
 .skills-container::-webkit-scrollbar-thumb:hover {
   background: #6a0dad;
+}
+
+[data-theme='light'] .skills-container {
+  background-color: #f8f5ff;
+  color: #211334;
+}
+
+[data-theme='light'] .heading-container {
+  border-bottom-color: rgba(107, 64, 179, 0.25);
+}
+
+[data-theme='light'] .skills-heading {
+  background: linear-gradient(135deg, #2f1b49, #7642c5);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+[data-theme='light'] .skills-input,
+[data-theme='light'] .filter-toggle-label,
+[data-theme='light'] .auth-input {
+  background-color: #ffffff;
+  color: #24163a;
+  border-color: #d8cfee;
+}
+
+[data-theme='light'] .skills-input::placeholder {
+  color: #7a6f90;
+}
+
+[data-theme='light'] .skills-card {
+  background-color: #ffffff;
+  border-color: #ddd3ef;
+  color: #3e3352;
+  box-shadow: 0 8px 22px rgba(98, 60, 160, 0.12), 0 0 0 1px rgba(106, 13, 173, 0.08);
+}
+
+[data-theme='light'] .skills-card h2 {
+  color: #2b1a44;
+}
+
+[data-theme='light'] .skills-card p,
+[data-theme='light'] .filter-toggle-text {
+  color: #6b607f;
+}
+
+[data-theme='light'] .fab-tooltip {
+  background: linear-gradient(135deg, #ffffff, #f1e9ff);
+  color: #2a1b43;
+  border-left-color: #9b30ff;
+}
+
+[data-theme='light'] .fab-tooltip::after {
+  border-top-color: #f1e9ff;
 }

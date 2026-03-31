@@ -541,3 +541,47 @@
   transition: all 0.3s ease;
   font-weight: 600;
 }
+
+[data-theme='light'] .profile-container {
+  color: #201334;
+  background-color: #f8f5ff;
+}
+
+[data-theme='light'] .profile-card,
+[data-theme='light'] .schedule-container,
+[data-theme='light'] .schedule-summary,
+[data-theme='light'] .error-container {
+  background-color: #ffffff;
+  color: #23163a;
+  box-shadow: 0 8px 20px rgba(106, 13, 173, 0.12), 0 0 0 1px rgba(106, 13, 173, 0.12);
+}
+
+[data-theme='light'] .profile-email,
+[data-theme='light'] .no-notifications-text {
+  color: #695c81;
+}
+
+[data-theme='light'] .profile-input,
+[data-theme='light'] .profile-textarea,
+[data-theme='light'] .notifications-panel,
+[data-theme='light'] .notification-item {
+  background-color: #f6f2ff;
+  color: #26193f;
+  border-color: #d9cfee;
+}
+
+[data-theme='light'] .profile-image-placeholder,
+[data-theme='light'] .time-label,
+[data-theme='light'] .day-label,
+[data-theme='light'] .slot-cell {
+  background-color: #efe8fc;
+  color: #2a1c45;
+}
+
+[data-theme='light'] .schedule-grid {
+  border-color: #d9cfee;
+}
+
+[data-theme='light'] .schedule-grid-cell {
+  border-color: #e3dbf2;
+}

@@ -5,6 +5,10 @@ import educImg1 from './home-pics/educ.jpg';
 import educImg2 from './home-pics/educ2.jpg';
 import educImg3 from './home-pics/educ3.jpg';
 import educImg4 from './home-pics/educ4.webp';
+import skillsCardImg from './home-pics/skills-card.png';
+import translationCardImg from './home-pics/translation-card.png';
+import connectCardImg from './home-pics/connect-card.png';
+import communityCardImg from './home-pics/community-card.png';
 // import { translateText } from '../hooks/useTranslation'; // Import the translation hook
 
 export default function Home() {
@@ -77,7 +81,13 @@ export default function Home() {
   };
 
   return (
-    <div>
+    <div className="home-page">
+      <div className="space-bg" aria-hidden="true">
+        <span className="space-glow"></span>
+        <span className="stars stars-slow"></span>
+        <span className="stars stars-fast"></span>
+      </div>
+      <div className="home-content">
       <section className="images-loop">
         <div className="image-container">
           <img src={educImg1} alt="Education 1" />
@@ -107,6 +117,12 @@ export default function Home() {
         <div className="card" ref={addToRefs}>
           <div className="front-page">
             <div className="card-info">
+              <div className="card-media">
+                <img
+                  src={skillsCardImg}
+                  alt="3D skills marketplace illustration"
+                />
+              </div>
               <h2 className="card-title">Skills Marketplace</h2>
               <p className="card-subtitle">Explore new skills in exchange with yours! </p>
             </div>
@@ -123,6 +139,12 @@ export default function Home() {
         <div className="card" ref={addToRefs}>
           <div className="front-page">
             <div className="card-info">
+              <div className="card-media">
+                <img
+                  src={translationCardImg}
+                  alt="3D translation illustration"
+                />
+              </div>
               <h2 className="card-title">Translations</h2>
               <p className="card-subtitle">Join interactive workshops!</p>
             </div>
@@ -139,6 +161,12 @@ export default function Home() {
         <div className="card" ref={addToRefs}>
           <div className="front-page">
             <div className="card-info">
+              <div className="card-media">
+                <img
+                  src={connectCardImg}
+                  alt="3D connection illustration"
+                />
+              </div>
               <h2 className="card-title">Connect</h2>
               <p className="card-subtitle">Connect with people!</p>
             </div>
@@ -155,6 +183,12 @@ export default function Home() {
         <div className="card" ref={addToRefs}>
           <div className="front-page">
             <div className="card-info">
+              <div className="card-media">
+                <img
+                  src={communityCardImg}
+                  alt="3D community illustration"
+                />
+              </div>
               <h2 className="card-title">Community</h2>
               <p className="card-subtitle">Join our learning community!</p>
             </div>
@@ -171,6 +205,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="footer">
+        <div className="footer-aurora footer-aurora-left" aria-hidden="true"></div>
         <div className="footer-content">
           <div className="footer-section">
             <h3>About Us</h3>
@@ -190,10 +225,9 @@ export default function Home() {
               <p><i className="fas fa-map-marker-alt"></i> Simon Fraser University, Burnaby, BC</p>
             </div>
             <div className="social-links">
-              <a href="#"><i className="fab fa-facebook"></i></a>
-              <a href="#"><i className="fab fa-twitter"></i></a>
-              <a href="#"><i className="fab fa-instagram"></i></a>
-              <a href="#"><i className="fab fa-linkedin"></i></a>
+              <a href="#" aria-label="Facebook"><i className="fab fa-facebook"></i></a>
+              <a href="#" aria-label="Twitter"><i className="fab fa-twitter"></i></a>
+              <a href="#" aria-label="Instagram"><i className="fab fa-instagram"></i></a>
             </div>
           </div>
         </div>
@@ -202,6 +236,7 @@ export default function Home() {
           <p>&copy; 2025 A Universe of Learning Opportunities. All rights reserved.</p>
         </div>
       </footer>
+      </div>
     </div>
   );
 }

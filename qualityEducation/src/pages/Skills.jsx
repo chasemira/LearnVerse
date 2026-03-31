@@ -240,7 +240,7 @@ export default function Skills() {
       <div className="fab-container">
         <button
           onClick={user ? () => setModalOpen(true) : () => window.location.href = '/login'}
-          className="fab"
+          className="skills-fab"
           onMouseEnter={() => setTooltipVisible(true)}
           onMouseLeave={() => setTooltipVisible(false)}
         >

@@ -575,3 +575,45 @@
     height: 40px;
   }
 }
+
+[data-theme='light'] .contact-container,
+[data-theme='light'] .chat-panel,
+[data-theme='light'] .no-chat-selected {
+  background-color: #f8f5ff;
+  color: #231539;
+}
+
+[data-theme='light'] .contacts-list,
+[data-theme='light'] .chat-messages,
+[data-theme='light'] .chat-input,
+[data-theme='light'] .contact-login-modal {
+  background-color: #ffffff;
+  border-color: #ddd3ef;
+}
+
+[data-theme='light'] .contact-item {
+  border-bottom-color: #e7def5;
+}
+
+[data-theme='light'] .contact-item:hover {
+  background-color: #f3ecff;
+}
+
+[data-theme='light'] .contact-item.active {
+  background-color: #eee5ff;
+}
+
+[data-theme='light'] .contact-info p,
+[data-theme='light'] .last-message,
+[data-theme='light'] .input-button {
+  color: #6e6285;
+}
+
+[data-theme='light'] .chat-message.received,
+[data-theme='light'] .message-input,
+[data-theme='light'] .message-context-menu,
+[data-theme='light'] .translate-submenu {
+  background-color: #f1ebfd;
+  color: #281a41;
+  border-color: #d9cdee;
+}
