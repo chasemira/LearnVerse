@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState, useContext } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase/firebase';
 import { db } from '../firebase/firebase';
@@ -13,20 +13,68 @@ import {
   where,
   setDoc,
   getDocsFromCache,
-  getDoc
+  getDoc,
+  updateDoc
 } from 'firebase/firestore';
 import './Skills.css';
+import { TranslationContext } from '../context/TranslationContext';
 import SkillTradeModal from '../components/SkillTradeModal';
 import SkillTradeInfoModal from '../components/SkillTradeInfoModal';
 import SkillChat from './SkillChat';
+import { useTranslatedLabels } from '../hooks/useTranslatedLabels';
 
-const SkillTradingPost = ({ offer, request, image, onClick }) => (
-  <div className="skills-card" onClick={onClick}>
-    {image && <img src={image} alt="Skill Example" className="skills-image" />}
-    <h2 className="font-bold text-lg">Offering: {offer}</h2>
-    <p className="text-sm">Looking for: {request}</p>
-  </div>
-);
+const SkillTradingPost = ({ post, onClick, labels }) => {
+  const { language, translateText } = useContext(TranslationContext);
+  const { offer: rawOffer, request: rawRequest, image } = post;
+  const [offer, setOffer] = useState(rawOffer);
+  const [request, setRequest] = useState(rawRequest);
+
+  useEffect(() => {
+    setOffer(rawOffer);
+    setRequest(rawRequest);
+
+    if (language === 'en') return;
+
+    const cached = post.translations?.[language];
+    if (cached?.offer && cached?.request) {
+      setOffer(cached.offer);
+      setRequest(cached.request);
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const [o, r] = await Promise.all([
+          translateText(rawOffer),
+          translateText(rawRequest),
+        ]);
+        if (cancelled) return;
+        setOffer(o);
+        setRequest(r);
+        if (post.id) {
+          await updateDoc(doc(db, 'posts', post.id), {
+            [`translations.${language}`]: { offer: o, request: r },
+          });
+        }
+      } catch (e) {
+        console.error('Post translation error:', e);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [post.id, rawOffer, rawRequest, language, post.translations, translateText]);
+
+  return (
+    <div className="skills-card" onClick={onClick}>
+      {image && <img src={image} alt="Skill Example" className="skills-image" />}
+      <h2 className="font-bold text-lg">{labels.offering}: {offer}</h2>
+      <p className="text-sm">{labels.lookingFor}: {request}</p>
+    </div>
+  );
+};
 
 export default function Skills() {
   const [user, setUser] = useState(null);
@@ -45,6 +93,21 @@ export default function Skills() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
   const [chatId, setChatId] = useState(null);
+  const labels = useTranslatedLabels(
+    useMemo(
+      () => ({
+        offering: 'Offering',
+        lookingFor: 'Looking for',
+        heading: 'Skill Trading Marketplace',
+        myPosts: 'My Posts',
+        otherPosts: 'Other Posts',
+        searchPlaceholder: 'Search for a skill...',
+        createNewPost: 'Create a new post',
+        loginToCreate: 'Login to create a post',
+      }),
+      []
+    )
+  );
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (loggedUser) => {
@@ -206,7 +269,7 @@ export default function Skills() {
   return (
     <div className="skills-container">
       <div className="heading-container">
-        <h1 className="skills-heading">Skill Trading Marketplace</h1>
+        <h1 className="skills-heading">{labels.heading}</h1>
         <div className="skills-search-container">
           {/* Toggle to filter "My Posts" vs "Other Posts" */}
           {user && (
@@ -219,7 +282,7 @@ export default function Skills() {
                   className="filter-toggle-input"
                 />
                 <span className="filter-toggle-text">
-                  {showMyPosts ? 'My Posts' : 'Other Posts'}
+                  {showMyPosts ? labels.myPosts : labels.otherPosts}
                 </span>
               </label>
             </div>
@@ -228,7 +291,7 @@ export default function Skills() {
           {/* Search box */}
           <input
             type="text"
-            placeholder="Search for a skill..."
+            placeholder={labels.searchPlaceholder}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="skills-input"
@@ -248,15 +311,20 @@ export default function Skills() {
         </button>
         {tooltipVisible && (
           <div className="fab-tooltip">
-            {user ? 'Create a new post' : 'Login to create a post'}
+            {user ? labels.createNewPost : labels.loginToCreate}
           </div>
         )}
       </div>
 
       {/* Display the filtered posts */}
       <div className="skills-grid">
-        {filteredPosts.map((post, idx) => (
-          <SkillTradingPost key={idx} {...post} onClick={() => handleCardClick(post)} />
+        {filteredPosts.map((post) => (
+          <SkillTradingPost
+            key={post.id || post.offer + post.request}
+            post={post}
+            labels={labels}
+            onClick={() => handleCardClick(post)}
+          />
         ))}
       </div>
 

@@ -6,6 +6,8 @@ import './Navbar.css';
 import Dropdown from './Dropdown'; 
 import logo from './logoWEB.png'; 
 import { ThemeContext } from '../context/ThemeContext';
+import { TranslationContext } from '../context/TranslationContext';
+import LanguageSwitcher from './LanguageSwitcher';
 
 const serviceMenuItems = [
   {
@@ -43,6 +45,8 @@ function Navbar() {
   }
   
   const { theme, toggleTheme } = themeContextValue;
+
+  const { translations } = useContext(TranslationContext);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -85,20 +89,20 @@ function Navbar() {
         <ul className={click ? 'nav-menu active' : 'nav-menu'}>
           <li className="nav-item">
             <Link to="/" className="nav-links" onClick={closeMobileMenu}>
-              Home
+              {translations.home || 'Home'}
             </Link>
           </li>
 
           {/* Replace Services Dropdown with Skills Marketplace */}
           <li className="nav-item">
             <Link to="/skills" className="nav-links" onClick={closeMobileMenu}>
-              Skills Marketplace
+              {translations.skills || 'Skills Marketplace'}
             </Link>
           </li>
 
           <li className="nav-item">
             <Link to="/contacts" className="nav-links" onClick={closeMobileMenu}>
-              Contacts
+              {translations.contact || 'Contacts'}
             </Link>
           </li>
 
@@ -106,12 +110,16 @@ function Navbar() {
             !user && (
               <li className="nav-item">
                 <Link to="/login" className="nav-links" onClick={closeMobileMenu}>
-                  Login
+                  {translations.login || 'Login'}
                 </Link>
               </li>
             )
           }
           
+          <li className="nav-item nav-item-lang">
+            <LanguageSwitcher />
+          </li>
+
           {/* Theme toggle in mobile menu */}
           <li className="nav-item">
             <button 
@@ -134,7 +142,7 @@ function Navbar() {
         {/* SEARCH BAR OR BUTTONS ON THE RIGHT */}
         <div className="nav-right-items">
           <div className="nav-search">
-            <input type="text" placeholder="Search in site" />
+            <input type="text" placeholder={translations.search || 'Search in site'} />
             <i className="fas fa-search" />
           </div>
 

@@ -116,7 +116,19 @@
   align-items: center;
   justify-content: flex-end; /* Ensure the search bar stays on the far right */
   margin-right: 20px;
+  gap: 12px;
 }
+
+.nav-item-lang .language-switcher select {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #555);
+  background: var(--input-bg, #fff);
+  color: var(--input-text, #111);
+  font-size: 0.95rem;
+  max-width: 140px;
+}
+
 .nav-search {
   position: relative;
   border: #fff;
@@ -227,5 +239,15 @@
 
   .nav-right-items {
     display: none; /* Hide search or button on mobile, or adapt it */
+  }
+
+  .nav-item-lang {
+    justify-content: center;
+    height: auto;
+    padding: 0.5rem 0;
+  }
+
+  .nav-item-lang .language-switcher select {
+    max-width: 220px;
   }
 }

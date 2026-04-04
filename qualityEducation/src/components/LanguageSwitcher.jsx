@@ -22,6 +22,7 @@ const LanguageSwitcher = () => {
         <option value="fr">Français</option>
         <option value="es">Español</option>
         <option value="de">Deutsch</option>
+        <option value="hi">हिन्दी</option>
         <option value="zh-Hans">中文 (简体)</option>
         <option value="ja">日本語</option>
         <option value="ko">한국어</option>

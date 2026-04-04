@@ -1,10 +1,54 @@
-import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useContext, useMemo } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase/firebase';
 import { db } from '../firebase/firebase';
-import { collection, doc, addDoc, getDocs, getDoc, orderBy, onSnapshot, serverTimestamp, Timestamp, query, where, setDoc } from 'firebase/firestore';
+import { collection, doc, addDoc, getDocs, getDoc, orderBy, onSnapshot, serverTimestamp, Timestamp, query, where, setDoc, updateDoc } from 'firebase/firestore';
 import { useParams, useNavigate } from 'react-router-dom';
 import './Contact.css';
+import { TranslationContext } from '../context/TranslationContext';
+import { useTranslatedLabels } from '../hooks/useTranslatedLabels';
+
+function ChatMessageBubble({ message, chatId, userUid, language, translateText }) {
+  const [display, setDisplay] = useState(message.text);
+
+  useEffect(() => {
+    setDisplay(message.text);
+    if (language === 'en') return;
+
+    if (message.translations?.[language]) {
+      setDisplay(message.translations[language]);
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const t = await translateText(message.text);
+        if (cancelled) return;
+        setDisplay(t);
+        if (chatId && message.id) {
+          await updateDoc(doc(db, 'chats', chatId, 'messages', message.id), {
+            [`translations.${language}`]: t,
+          });
+        }
+      } catch (e) {
+        console.error('Message translation error:', e);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [message.id, message.text, language, message.translations, chatId, translateText]);
+
+  return (
+    <div
+      className={`chat-message ${message.sender === (userUid || 'currentUser') ? 'sent' : 'received'}`}
+    >
+      {display}
+    </div>
+  );
+}
 
 const Contact = () => {
   const [user, setUser] = useState(null);
@@ -17,6 +61,23 @@ const Contact = () => {
 
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
+  const labels = useTranslatedLabels(
+    useMemo(
+      () => ({
+        loginRequired: 'Login Required',
+        loginPrompt: 'Please log in to access your contacts and messages.',
+        goToLogin: 'Go to Login',
+        contactsHeading: 'Skill Trade Contacts',
+        exchange: 'Exchange',
+        typeMessage: 'Type a message...',
+        send: 'Send',
+        selectContact: 'Select a contact to start chatting',
+      }),
+      []
+    )
+  );
+
+  const { language, translateText } = useContext(TranslationContext);
 
   useEffect(() => {
     if (messagesAreaRef.current) {
@@ -214,10 +275,10 @@ const Contact = () => {
       return (
         <div className="contact-login-required">
           <div className="contact-login-modal">
-            <h2>Login Required</h2>
-            <p>Please log in to access your contacts and messages.</p>
+            <h2>{labels.loginRequired}</h2>
+            <p>{labels.loginPrompt}</p>
             <button onClick={() => window.location.href = '/login'}>
-              Go to Login
+              {labels.goToLogin}
             </button>
           </div>
         </div>
@@ -228,7 +289,7 @@ const Contact = () => {
       <div className="contact-container">
         <div className="contacts-list">
           <div className="contacts-header">
-            <h2>Skill Trade Contacts</h2>
+            <h2>{labels.contactsHeading}</h2>
           </div>
           {contacts.map(contact => (
             <div 
@@ -247,7 +308,7 @@ const Contact = () => {
               />
               <div className="contact-info">
                 <h3>{contact.user.displayName}</h3>
-                <p>{contact.skill} Exchange</p>
+                <p>{contact.skill} {labels.exchange}</p>
                 <p 
                   className={`last-messsage${checkMessagesSynced(contact) ? '' : '-unread'}`}>
                     {contact.latestMessageText}
@@ -268,17 +329,19 @@ const Contact = () => {
               />
               <div className="chat-header-info">
                 <h2>{selectedChat?.user.displayName}</h2>
-                <p>{selectedChat?.skill} Exchange</p>
+                <p>{selectedChat?.skill} {labels.exchange}</p>
               </div>
             </div>
             <div className="chat-messages" ref={messagesAreaRef}>
-              {messages.map(message => (
-                <div 
-                  key={message.id} 
-                  className={`chat-message ${message.sender === (user?.uid || 'currentUser') ? 'sent' : 'received'}`}
-                >
-                  {message.text}
-                </div>
+              {messages.map((message) => (
+                <ChatMessageBubble
+                  key={message.id}
+                  message={message}
+                  chatId={chatId}
+                  userUid={user?.uid}
+                  language={language}
+                  translateText={translateText}
+                />
               ))}
             </div>
             <div className="chat-input">
@@ -287,17 +350,17 @@ const Contact = () => {
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyDown={handleKeyPress}
-                placeholder="Type a message..."
+                placeholder={labels.typeMessage}
                 className="message-input"
               />
               <button onClick={handleSendMessage} className="send-button">
-                Send
+                {labels.send}
               </button>
             </div>
           </div>
         ) : (
           <div className="no-chat-selected">
-            <p>Select a contact to start chatting</p>
+            <p>{labels.selectContact}</p>
           </div>
         )}
       </div>

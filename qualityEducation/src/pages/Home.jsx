@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';  // Add this import
 import './Home.css';
 import educImg1 from './home-pics/educ.jpg';
@@ -9,13 +9,53 @@ import skillsCardImg from './home-pics/skills-card.png';
 import translationCardImg from './home-pics/translation-card.png';
 import connectCardImg from './home-pics/connect-card.png';
 import communityCardImg from './home-pics/community-card.png';
-// import { translateText } from '../hooks/useTranslation'; // Import the translation hook
+import { useTranslatedLabels } from '../hooks/useTranslatedLabels';
 
 export default function Home() {
   const resourcesRef = useRef(null);
   const cardsRef = useRef([]);
   const [lastScrollTop, setLastScrollTop] = useState(0);
   const navigate = useNavigate();  // Add this line to use navigation
+  const labels = useTranslatedLabels(
+    useMemo(
+      () => ({
+        heroTitle: 'Empowering Education for All',
+        heroSubtitle:
+          'Providing accessible and free educational resources to marginalized communities',
+        featuredResources: 'Featured Resources',
+        skillsMarketplace: 'Skills Marketplace',
+        skillsSubtitle: 'Explore new skills in exchange with yours!',
+        skillExchange: 'Skill Exchange',
+        skillExchangeDesc: 'Exchange Crochet skills for Math!',
+        exploreMore: 'Explore More',
+        translations: 'Translations',
+        translationsSubtitle: 'Join interactive workshops!',
+        handsOnLearning: 'Hands-On Learning',
+        handsOnLearningDesc: 'Learn practical skills in real-time!',
+        joinNow: 'Join Now',
+        connect: 'Connect',
+        connectSubtitle: 'Connect with people!',
+        guidedLearning: 'Guided Learning',
+        guidedLearningDesc: 'Get personalized guidance from experts!',
+        learnMore: 'Learn More',
+        community: 'Community',
+        communitySubtitle: 'Join our learning community!',
+        collaborate: 'Collaborate',
+        collaborateDesc: 'Work together to achieve your goals!',
+        getStarted: 'Get Started',
+        aboutUs: 'About Us',
+        aboutUsDesc:
+          'We are dedicated to providing accessible educational resources to underserved communities, bridging the knowledge gap and empowering individuals through education.',
+        ourMission: 'Our Mission',
+        ourMissionDesc:
+          'To create an inclusive learning environment where everyone has equal opportunity to access quality education regardless of their background or circumstances.',
+        contactUs: 'Contact Us',
+        footerCopyright:
+          '© 2025 A Universe of Learning Opportunities. All rights reserved.',
+      }),
+      []
+    )
+  );
 
   useEffect(() => {
     // Function to check if element is in viewport
@@ -100,15 +140,15 @@ export default function Home() {
           <img src={educImg4} alt="Education 4" />
         </div>
         <div className="overlay-text">
-          <h1>Empowering Education for All</h1>
-          <p>Providing accessible and free educational resources to marginalized communities</p>
+          <h1>{labels.heroTitle}</h1>
+          <p>{labels.heroSubtitle}</p>
         </div>
       </section>
 
       {/* Featured resources */}
       <section>
         <div className="resources" ref={resourcesRef}>
-          <h2>Featured Resources</h2>
+          <h2>{labels.featuredResources}</h2>
         </div>
       </section>
 
@@ -123,15 +163,15 @@ export default function Home() {
                   alt="3D skills marketplace illustration"
                 />
               </div>
-              <h2 className="card-title">Skills Marketplace</h2>
-              <p className="card-subtitle">Explore new skills in exchange with yours! </p>
+              <h2 className="card-title">{labels.skillsMarketplace}</h2>
+              <p className="card-subtitle">{labels.skillsSubtitle}</p>
             </div>
           </div>
           <div className="back-page">
             <div className="card-content">
-              <h3>Skill Exchange</h3>
-              <p className="card-description">Exchange Crochet skills for Math!</p>
-              <button className="card-button" onClick={() => navigate('/skills')}>Explore More</button>
+              <h3>{labels.skillExchange}</h3>
+              <p className="card-description">{labels.skillExchangeDesc}</p>
+              <button className="card-button" onClick={() => navigate('/skills')}>{labels.exploreMore}</button>
             </div>
           </div>
         </div>
@@ -145,15 +185,15 @@ export default function Home() {
                   alt="3D translation illustration"
                 />
               </div>
-              <h2 className="card-title">Translations</h2>
-              <p className="card-subtitle">Join interactive workshops!</p>
+              <h2 className="card-title">{labels.translations}</h2>
+              <p className="card-subtitle">{labels.translationsSubtitle}</p>
             </div>
           </div>
           <div className="back-page">
             <div className="card-content">
-              <h3>Hands-On Learning</h3>
-              <p className="card-description">Learn practical skills in real-time!</p>
-              <button className="card-button">Join Now</button>
+              <h3>{labels.handsOnLearning}</h3>
+              <p className="card-description">{labels.handsOnLearningDesc}</p>
+              <button className="card-button">{labels.joinNow}</button>
             </div>
           </div>
         </div>
@@ -167,15 +207,15 @@ export default function Home() {
                   alt="3D connection illustration"
                 />
               </div>
-              <h2 className="card-title">Connect</h2>
-              <p className="card-subtitle">Connect with people!</p>
+              <h2 className="card-title">{labels.connect}</h2>
+              <p className="card-subtitle">{labels.connectSubtitle}</p>
             </div>
           </div>
           <div className="back-page">
             <div className="card-content">
-              <h3>Guided Learning</h3>
-              <p className="card-description">Get personalized guidance from experts!</p>
-              <button className="card-button">Learn More</button>
+              <h3>{labels.guidedLearning}</h3>
+              <p className="card-description">{labels.guidedLearningDesc}</p>
+              <button className="card-button">{labels.learnMore}</button>
             </div>
           </div>
         </div>
@@ -189,15 +229,15 @@ export default function Home() {
                   alt="3D community illustration"
                 />
               </div>
-              <h2 className="card-title">Community</h2>
-              <p className="card-subtitle">Join our learning community!</p>
+              <h2 className="card-title">{labels.community}</h2>
+              <p className="card-subtitle">{labels.communitySubtitle}</p>
             </div>
           </div>
           <div className="back-page">
             <div className="card-content">
-              <h3>Collaborate</h3>
-              <p className="card-description">Work together to achieve your goals!</p>
-              <button className="card-button">Get Started</button>
+              <h3>{labels.collaborate}</h3>
+              <p className="card-description">{labels.collaborateDesc}</p>
+              <button className="card-button">{labels.getStarted}</button>
             </div>
           </div>
         </div>
@@ -208,17 +248,17 @@ export default function Home() {
         <div className="footer-aurora footer-aurora-left" aria-hidden="true"></div>
         <div className="footer-content">
           <div className="footer-section">
-            <h3>About Us</h3>
-            <p>We are dedicated to providing accessible educational resources to underserved communities, bridging the knowledge gap and empowering individuals through education.</p>
+            <h3>{labels.aboutUs}</h3>
+            <p>{labels.aboutUsDesc}</p>
           </div>
           
           <div className="footer-section">
-            <h3>Our Mission</h3>
-            <p>To create an inclusive learning environment where everyone has equal opportunity to access quality education regardless of their background or circumstances.</p>
+            <h3>{labels.ourMission}</h3>
+            <p>{labels.ourMissionDesc}</p>
           </div>
           
           <div className="footer-section">
-            <h3>Contact Us</h3>
+            <h3>{labels.contactUs}</h3>
             <div className="contact-info">
               <p><i className="far fa-envelope"></i> LearnVerse@gmail.com</p>
               <p><i className="fas fa-phone"></i> +1 (236) 123-4567</p>
@@ -233,7 +273,7 @@ export default function Home() {
         </div>
         
         <div className="footer-bottom">
-          <p>&copy; 2025 A Universe of Learning Opportunities. All rights reserved.</p>
+          <p>{labels.footerCopyright}</p>
         </div>
       </footer>
       </div>

@@ -1,55 +1,58 @@
 // src/context/TranslationContext.jsx
-import React, { createContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
+import { translateRemote } from '../lib/translationApi';
 
-// Create Context
-export const TranslationContext = createContext();
+const STORAGE_KEY = 'appLanguage';
+
+export const TranslationContext = createContext({
+  language: 'en',
+  setLanguage: () => {},
+  translations: {},
+  translateText: async (t) => t,
+  translateObject: async () => {},
+  isTranslating: false,
+});
 
 export const TranslationProvider = ({ children }) => {
-  const [language, setLanguage] = useState('en'); // Default: English
+  const [language, setLanguageState] = useState(() => {
+    try {
+      return localStorage.getItem(STORAGE_KEY) || 'en';
+    } catch {
+      return 'en';
+    }
+  });
   const [translations, setTranslations] = useState({});
   const [isTranslating, setIsTranslating] = useState(false);
 
-  const apiKey = import.meta.env.VITE_AZURE_TRANSLATOR_KEY;
-  const endpoint = import.meta.env.VITE_AZURE_TRANSLATOR_ENDPOINT || 'https://api.cognitive.microsofttranslator.com';
-  const region = import.meta.env.VITE_AZURE_TRANSLATOR_REGION || 'canadaeast';
-
-  // Function to translate text
-  const translateText = async (text) => {
-    if (!text || language === 'en' || !apiKey) return text; // Skip if English or missing API key
-  
+  const setLanguage = useCallback((lang) => {
+    setLanguageState(lang);
     try {
-      const response = await axios.post(
-        `${endpoint}/translate?api-version=3.0&to=${language}`,
-        [{ Text: text }],
-        {
-          headers: {
-            'Ocp-Apim-Subscription-Key': apiKey,
-            'Content-type': 'application/json',
-            'Ocp-Apim-Subscription-Region': region,
-          },
-        }
-      );
-      return response.data[0].translations[0].text;
-    } catch (error) {
-      console.error('Translation error:', error);
-      return text; // fallback to original text on error
+      localStorage.setItem(STORAGE_KEY, lang);
+    } catch {
+      /* ignore */
     }
-  };
+  }, []);
 
-  // Function to translate a whole object of text (e.g., Navbar labels)
-  const translateObject = async (obj) => {
-    if (language === 'en' || !apiKey) {
+  const translateText = useCallback(
+    async (text) => {
+      if (!text || language === 'en') return text;
+      return translateRemote(text, language);
+    },
+    [language]
+  );
+
+  const translateObject = useCallback(async (obj) => {
+    if (language === 'en') {
       setTranslations(obj);
       return;
     }
 
     setIsTranslating(true);
     const keys = Object.keys(obj);
-    
+
     try {
       const results = await Promise.all(
-        keys.map((key) => translateText(obj[key]))
+        keys.map((key) => translateRemote(obj[key], language))
       );
 
       const newTranslations = keys.reduce((acc, key, index) => {
@@ -60,13 +63,12 @@ export const TranslationProvider = ({ children }) => {
       setTranslations(newTranslations);
     } catch (error) {
       console.error('Translation batch error:', error);
-      setTranslations(obj); // Fallback to original texts
+      setTranslations(obj);
     } finally {
       setIsTranslating(false);
     }
-  };
+  }, [language]);
 
-  // Common UI elements to translate when language changes
   useEffect(() => {
     translateObject({
       home: 'Home',
@@ -79,17 +81,19 @@ export const TranslationProvider = ({ children }) => {
       profile: 'Profile',
       search: 'Search in site',
     });
-  }, [language]); // Re-translate when language changes
+  }, [language, translateObject]);
 
   return (
-    <TranslationContext.Provider value={{ 
-      language, 
-      setLanguage, 
-      translations, 
-      translateText,
-      translateObject,
-      isTranslating 
-    }}>
+    <TranslationContext.Provider
+      value={{
+        language,
+        setLanguage,
+        translations,
+        translateText,
+        translateObject,
+        isTranslating,
+      }}
+    >
       {children}
     </TranslationContext.Provider>
   );

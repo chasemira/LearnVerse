@@ -1,44 +1,76 @@
-const functions = require("firebase-functions");
-const axios = require("axios");
+/**
+ * Callable: translateText — Google Cloud Translation API (ADC in Cloud Functions).
+ * Gen-1 (Node 20). Enable Cloud Translation API on the project.
+ */
+const functions = require("firebase-functions/v1");
+const { Translate } = require("@google-cloud/translate").v2;
 
-// For local development (optional)
-require("dotenv").config();
+const MAX_CHARS = 5000;
 
-const VITE_AZURE_TRANSLATOR_KEY = process.env.VITE_AZURE_TRANSLATOR_KEY || functions.config().azure_translator.key;
-const VITE_AZURE_TRANSLATOR_ENDPOINT = process.env.VITE_AZURE_TRANSLATOR_ENDPOINT || functions.config().azure_translator.endpoint;
-const VITE_AZURE_TRANSLATOR_REGION = process.env.VITE_AZURE_TRANSLATOR_REGION || functions.config().azure_translator.region;
+const ALLOWED = new Set([
+  "en",
+  "fr",
+  "es",
+  "de",
+  "hi",
+  "zh-Hans",
+  "ja",
+  "ko",
+  "ar",
+  "ru",
+  "pt",
+  "it",
+]);
 
-exports.translateText = functions.https.onRequest(async (req, res) => {
-  // Allow only POST requests
-  if (req.method !== "POST") {
-    return res.status(405).send("Method Not Allowed");
+function toGoogleTarget(code) {
+  if (code === "zh-Hans") return "zh-CN";
+  return code;
+}
+
+const translateClient = new Translate();
+
+exports.translateText = functions.region("us-central1").https.onCall(async (data) => {
+  const { text, targetLang } = data || {};
+
+  if (typeof text !== "string" || text.length === 0) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "text must be a non-empty string"
+    );
   }
-  
-  const { text, target } = req.body;
-  if (!text || !target) {
-    return res.status(400).send("Missing 'text' or 'target' parameter.");
+  if (text.length > MAX_CHARS) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      `text exceeds ${MAX_CHARS} characters`
+    );
   }
-  
+  if (!targetLang || typeof targetLang !== "string") {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "targetLang is required"
+    );
+  }
+  if (!ALLOWED.has(targetLang)) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "unsupported targetLang"
+    );
+  }
+  if (targetLang === "en") {
+    return { translatedText: text };
+  }
+
   try {
-    // Build the request URL (using API version 3.0)
-    const url = `${VITE_AZURE_TRANSLATOR_ENDPOINT}/translate?api-version=3.0&to=${target}`;
-    
-    // Azure expects an array of objects with a "Text" property
-    const requestBody = [{ Text: text }];
-    
-    const headers = {
-      "Ocp-Apim-Subscription-Key": VITE_AZURE_TRANSLATOR_KEY,
-      "Ocp-Apim-Subscription-Region": VITE_AZURE_TRANSLATOR_REGION,
-      "Content-Type": "application/json"
-    };
-    
-    const response = await axios.post(url, requestBody, { headers });
-    // Azure returns translations in an array; get the first result's first translation.
-    const translatedText = response.data[0].translations[0].text;
-    
-    res.status(200).send({ translatedText });
-  } catch (error) {
-    console.error("Translation error:", error.response ? error.response.data : error);
-    res.status(500).send("Translation error");
+    const [translated] = await translateClient.translate(
+      text,
+      toGoogleTarget(targetLang)
+    );
+    return { translatedText: translated };
+  } catch (err) {
+    console.error("translateText error", err);
+    throw new functions.https.HttpsError(
+      "internal",
+      err.message || "Translation failed"
+    );
   }
 });
