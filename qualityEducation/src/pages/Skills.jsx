@@ -45,16 +45,22 @@ const SkillTradingPost = ({ post, onClick, labels }) => {
     let cancelled = false;
     (async () => {
       try {
-        const [o, r] = await Promise.all([
+        const rawDesc = post.description || '';
+        const [o, r, d] = await Promise.all([
           translateText(rawOffer),
           translateText(rawRequest),
+          rawDesc ? translateText(rawDesc) : Promise.resolve(''),
         ]);
         if (cancelled) return;
         setOffer(o);
         setRequest(r);
         if (post.id) {
           await updateDoc(doc(db, 'posts', post.id), {
-            [`translations.${language}`]: { offer: o, request: r },
+            [`translations.${language}`]: {
+              offer: o,
+              request: r,
+              ...(rawDesc ? { description: d } : {}),
+            },
           });
         }
       } catch (e) {
@@ -65,7 +71,7 @@ const SkillTradingPost = ({ post, onClick, labels }) => {
     return () => {
       cancelled = true;
     };
-  }, [post.id, rawOffer, rawRequest, language, post.translations, translateText]);
+  }, [post.id, rawOffer, rawRequest, post.description, language, post.translations, translateText]);
 
   return (
     <div className="skills-card" onClick={onClick}>
