@@ -270,6 +270,12 @@ const Contact = () => {
     return chatDoc.exists() && chatDoc.data().latestMessageId === contact.latestMessageId;
   }
 
+  const openUserProfile = (e, profileUid) => {
+    e.stopPropagation();
+    if (!profileUid) return;
+    navigate(`/profile/${profileUid}`);
+  };
+
   const renderContent = () => {
     if (!user) {
       return (
@@ -305,9 +311,15 @@ const Contact = () => {
                 src={contact.user.photoURL} 
                 alt={contact.user.displayName} 
                 className="contact-avatar" 
+                onClick={(e) => openUserProfile(e, contact.user?.id)}
               />
               <div className="contact-info">
-                <h3>{contact.user.displayName}</h3>
+                <h3
+                  className="profile-link-trigger"
+                  onClick={(e) => openUserProfile(e, contact.user?.id)}
+                >
+                  {contact.user.displayName}
+                </h3>
                 <p>{contact.skill} {labels.exchange}</p>
                 <p 
                   className={`last-messsage${checkMessagesSynced(contact) ? '' : '-unread'}`}>
@@ -328,7 +340,12 @@ const Contact = () => {
                 onClick={() => window.location.href = `/profile/${selectedChat?.user.id}`}
               />
               <div className="chat-header-info">
-                <h2>{selectedChat?.user.displayName}</h2>
+                <h2
+                  className="profile-link-trigger"
+                  onClick={(e) => openUserProfile(e, selectedChat?.user?.id)}
+                >
+                  {selectedChat?.user.displayName}
+                </h2>
                 <p>{selectedChat?.skill} {labels.exchange}</p>
               </div>
             </div>

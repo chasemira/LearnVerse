@@ -109,6 +109,14 @@
   transition: color 0.3s ease;
 }
 
+.profile-link-trigger {
+  cursor: pointer;
+}
+
+.profile-link-trigger:hover {
+  text-decoration: underline;
+}
+
 .contact-item:hover .contact-info h3 {
   color: #9b30ff;
 }
