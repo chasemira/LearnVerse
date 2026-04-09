@@ -12,6 +12,19 @@ import {
 } from 'firebase/firestore';
 import './Profile.css';
 
+function ProfileCosmicShell({ children }) {
+  return (
+    <div className="profile-page">
+      <div className="profile-space-bg" aria-hidden="true">
+        <div className="profile-space-glow" />
+        <div className="profile-stars profile-stars-slow" />
+        <div className="profile-stars profile-stars-fast" />
+      </div>
+      <div className="profile-content">{children}</div>
+    </div>
+  );
+}
+
 /** Creates an empty schedule object with days as keys, each an empty array. */
 function createEmptySchedule() {
   return {
@@ -244,16 +257,17 @@ export default function Profile() {
 
   if (!userExists) {
     return (
-      <>
-      <div className="error-container">
-        <p className="error-text">404: User does not exist.</p>
-        <Link to="/" className="back-link">Back to Home</Link>
-      </div>
-      </>
-    )
+      <ProfileCosmicShell>
+        <div className="error-container">
+          <p className="error-text">404: User does not exist.</p>
+          <Link to="/" className="back-link">Back to Home</Link>
+        </div>
+      </ProfileCosmicShell>
+    );
   }
 
   return (
+    <ProfileCosmicShell>
     <div className="profile-container">
       {/* NOTIFICATIONS BELL (only if it's my profile) */}
       {editable && (
@@ -298,64 +312,72 @@ export default function Profile() {
           )}
         </div>
         <div className="profile-info-section">
-          {isEditing ? (
-            <>
-              <input
-                type="text"
-                name="displayName"
-                value={profileData.displayName}
-                onChange={handleChange}
-                className="profile-input"
-                placeholder="Name"
-              />
-              <input
-                type="email"
-                name="email"
-                value={profileData.email}
-                onChange={handleChange}
-                className="profile-input"
-              />
-              <textarea
-                name="description"
-                value={profileData.description}
-                onChange={handleChange}
-                className="profile-textarea"
-                placeholder="Write a short bio..."
-              />
-              <div className="profile-image-upload">
-                <label htmlFor="profileImage" className="upload-label">
-                  {fileName ? fileName : 'Upload Profile Image'}
-                </label>
-                <input
-                  type="file"
-                  id="profileImage"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="profile-file-input"
-                />
-              </div>
-            </>
-          ) : (
-            <>
-              <h2 className="profile-name">{profileData.displayName}</h2>
-              <p className="profile-email">{profileData.email}</p>
-              <p className="profile-description">{profileData.description}</p>
-            </>
-          )}
-
-          {editable && (
-            <div className="profile-buttons">
-              <button className="edit-button" onClick={handleSaveClick}>
-                {isEditing ? 'Save' : 'Edit Profile'}
-              </button>
-              <button
-                className="edit-button"
-                onClick={() => navigate('/logout')}
-              >
-                Logout
-              </button>
+          <div className="profile-info-layout">
+            <div className="profile-identity">
+              {isEditing ? (
+                <>
+                  <input
+                    type="text"
+                    name="displayName"
+                    value={profileData.displayName}
+                    onChange={handleChange}
+                    className="profile-input"
+                    placeholder="Name"
+                  />
+                  <input
+                    type="email"
+                    name="email"
+                    value={profileData.email}
+                    onChange={handleChange}
+                    className="profile-input"
+                  />
+                  <textarea
+                    name="description"
+                    value={profileData.description}
+                    onChange={handleChange}
+                    className="profile-textarea"
+                    placeholder="Write a short bio..."
+                  />
+                  <div className="profile-image-upload">
+                    <label htmlFor="profileImage" className="upload-label">
+                      {fileName ? fileName : 'Upload Profile Image'}
+                    </label>
+                    <input
+                      type="file"
+                      id="profileImage"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="profile-file-input"
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h2 className="profile-name">{profileData.displayName}</h2>
+                  <p className="profile-email">{profileData.email}</p>
+                  <p className="profile-description">{profileData.description}</p>
+                </>
+              )}
             </div>
-          )}
+            {editable && (
+              <div className="profile-actions" role="toolbar" aria-label="Profile actions">
+                <button
+                  type="button"
+                  className="profile-action-btn profile-action-btn--primary"
+                  onClick={handleSaveClick}
+                >
+                  {isEditing ? 'Save' : 'Edit profile'}
+                </button>
+                <button
+                  type="button"
+                  className="profile-action-btn profile-action-btn--outline"
+                  onClick={() => navigate('/logout')}
+                >
+                  Log out
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -403,5 +425,6 @@ export default function Profile() {
         <pre>{getScheduleSummary()}</pre>
       </div>
     </div>
+    </ProfileCosmicShell>
   );
 }

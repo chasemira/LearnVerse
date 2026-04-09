@@ -14,11 +14,17 @@ import Login from './pages/Login';
 import Logout from './pages/Logout';
 import Profile from './pages/Profile';
 
+/** Match Vite `base` (e.g. /LearnVerse/) so client routes work when not hosted at domain root */
+const routerBasename =
+  import.meta.env.BASE_URL && import.meta.env.BASE_URL !== '/'
+    ? import.meta.env.BASE_URL.replace(/\/$/, '')
+    : undefined;
+
 function App() {
   return (
     <ThemeProvider> {/* Wrap with ThemeProvider */}
       <TranslationProvider>
-        <Router>
+        <Router basename={routerBasename}>
           <Navbar />
           <Routes>
             <Route path="/" element={<Home />} />

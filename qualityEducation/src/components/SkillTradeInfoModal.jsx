@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase/firebase';
 import { doc, getDoc, deleteDoc, updateDoc } from 'firebase/firestore';
 import './SkillTradeInfoModal.css';
@@ -6,6 +7,7 @@ import { TranslationContext } from '../context/TranslationContext';
 import { useTranslatedLabels } from '../hooks/useTranslatedLabels';
 
 const SkillTradeInfoModal = ({ isOpen, onClose, onAccept, post, user }) => {
+    const navigate = useNavigate();
     const { language, translateText } = useContext(TranslationContext);
     const labels = useTranslatedLabels(
       useMemo(
@@ -122,11 +124,11 @@ const SkillTradeInfoModal = ({ isOpen, onClose, onAccept, post, user }) => {
     ]);
 
     const redirectToLogin = () => {
-        window.location.href = '/login';
+        navigate('/login');
     };
 
     const redirectToUserProfile = () => {
-        window.location.href = `/profile/${post.authorID}`;
+        if (post?.authorID) navigate(`/profile/${post.authorID}`);
     };
 
     const deletePost = async () => {

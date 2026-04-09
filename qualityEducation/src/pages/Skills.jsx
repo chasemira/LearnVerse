@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase/firebase';
 import { db } from '../firebase/firebase';
@@ -83,6 +84,7 @@ const SkillTradingPost = ({ post, onClick, labels }) => {
 };
 
 export default function Skills() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
   const [tooltipVisible, setTooltipVisible] = useState(false);
@@ -213,7 +215,7 @@ export default function Skills() {
     );
     if (existingChats.docs.length > 0) {
       // Chat already exists -> go to that chat
-      window.location.href = `/contacts/${existingChats.docs[0].id}`;
+      navigate(`/contacts/${existingChats.docs[0].id}`);
       return;
     }
 
@@ -308,7 +310,7 @@ export default function Skills() {
       {/* Floating action button to create a new post */}
       <div className="fab-container">
         <button
-          onClick={user ? () => setModalOpen(true) : () => window.location.href = '/login'}
+          onClick={user ? () => setModalOpen(true) : () => navigate('/login')}
           className="skills-fab"
           onMouseEnter={() => setTooltipVisible(true)}
           onMouseLeave={() => setTooltipVisible(false)}

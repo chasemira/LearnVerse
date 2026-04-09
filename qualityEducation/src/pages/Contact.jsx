@@ -1,9 +1,28 @@
-import React, { useState, useEffect, useLayoutEffect, useRef, useContext, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useContext, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase/firebase';
 import { db } from '../firebase/firebase';
-import { collection, doc, addDoc, getDocs, getDoc, orderBy, onSnapshot, serverTimestamp, Timestamp, query, where, setDoc, updateDoc } from 'firebase/firestore';
+import {
+  collection,
+  doc,
+  addDoc,
+  getDocs,
+  getDoc,
+  orderBy,
+  onSnapshot,
+  serverTimestamp,
+  query,
+  where,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  writeBatch,
+  limit,
+} from 'firebase/firestore';
 import { useParams, useNavigate } from 'react-router-dom';
+import '../pages/Login.css';
+import '../components/LoginRegister.css';
 import './Contact.css';
 import { TranslationContext } from '../context/TranslationContext';
 import { useTranslatedLabels } from '../hooks/useTranslatedLabels';
@@ -50,10 +69,23 @@ function ChatMessageBubble({ message, chatId, userUid, language, translateText }
   );
 }
 
+/** Deletes all docs in chats/{chatId}/messages in batches (Firestore 500-op limit). */
+async function deleteAllChatMessages(chatId) {
+  const messagesRef = collection(db, 'chats', chatId, 'messages');
+  for (;;) {
+    const snap = await getDocs(query(messagesRef, limit(450)));
+    if (snap.empty) return;
+    const batch = writeBatch(db);
+    snap.docs.forEach((d) => batch.delete(d.ref));
+    await batch.commit();
+  }
+}
+
 const Contact = () => {
   const [user, setUser] = useState(null);
   const [contacts, setContacts] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
+  const [contactContextMenu, setContactContextMenu] = useState(null);
   const messagesAreaRef = useRef(null);
 
   const [chatId, setChatId] = useState(useParams().chatId || null);
@@ -72,6 +104,10 @@ const Contact = () => {
         typeMessage: 'Type a message...',
         send: 'Send',
         selectContact: 'Select a contact to start chatting',
+        deleteChat: 'Delete chat',
+        confirmDeleteChat:
+          'Delete this chat for both people? All messages will be removed. This cannot be undone.',
+        deleteChatError: 'Could not delete this chat. Please try again.',
       }),
       []
     )
@@ -276,16 +312,79 @@ const Contact = () => {
     navigate(`/profile/${profileUid}`);
   };
 
+  useEffect(() => {
+    if (!contactContextMenu) return;
+    const close = () => setContactContextMenu(null);
+    const onKey = (e) => {
+      if (e.key === 'Escape') close();
+    };
+    document.addEventListener('click', close);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('click', close);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [contactContextMenu]);
+
+  const handleDeleteChat = async (contact) => {
+    if (!user || !contact?.id || !contact.posterID || !contact.accepteeID) return;
+    if (!window.confirm(labels.confirmDeleteChat)) return;
+    setContactContextMenu(null);
+    const id = contact.id;
+    try {
+      await deleteAllChatMessages(id);
+      await deleteDoc(doc(db, 'chats', id));
+      await deleteDoc(doc(db, 'users', contact.posterID, 'chats', id));
+      await deleteDoc(doc(db, 'users', contact.accepteeID, 'chats', id));
+      setContacts((prev) => prev.filter((c) => c.id !== id));
+      if (id === chatId) {
+        setSelectedChat(null);
+        setChatId(null);
+        setMessages([]);
+        navigate('/contacts');
+      }
+    } catch (err) {
+      console.error('Delete chat failed:', err);
+      window.alert(labels.deleteChatError);
+    }
+  };
+
+  const openContactContextMenu = (e, contact) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const pad = 8;
+    const mw = 200;
+    const mh = 52;
+    const x = Math.min(e.clientX, window.innerWidth - mw - pad);
+    const y = Math.min(e.clientY, window.innerHeight - mh - pad);
+    setContactContextMenu({ x, y, contact });
+  };
+
   const renderContent = () => {
     if (!user) {
       return (
-        <div className="contact-login-required">
-          <div className="contact-login-modal">
-            <h2>{labels.loginRequired}</h2>
-            <p>{labels.loginPrompt}</p>
-            <button onClick={() => window.location.href = '/login'}>
-              {labels.goToLogin}
-            </button>
+        <div className="login-page contact-auth-gate-page">
+          <div className="login-space-bg" aria-hidden="true">
+            <span className="login-space-glow" />
+            <span className="login-stars login-stars-slow" />
+            <span className="login-stars login-stars-fast" />
+          </div>
+          <div className="login-container contact-auth-gate-inner">
+            <div className="auth-wrapper contact-auth-gate-wrapper">
+              <div className="auth-container contact-auth-gate-card">
+                <div className="auth-form-container">
+                  <h2>{labels.loginRequired}</h2>
+                  <p className="subtitle">{labels.loginPrompt}</p>
+                  <button
+                    type="button"
+                    className="auth-btn"
+                    onClick={() => navigate('/login')}
+                  >
+                    {labels.goToLogin}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       );
@@ -297,15 +396,16 @@ const Contact = () => {
           <div className="contacts-header">
             <h2>{labels.contactsHeading}</h2>
           </div>
-          {contacts.map(contact => (
-            <div 
-              key={contact.id} 
+          {contacts.map((contact) => (
+            <div
+              key={contact.id}
               className={`contact-item ${selectedChat && selectedChat.id === contact.id ? 'active' : ''}`}
               onClick={() => {
                 setSelectedChat(contact);
                 setChatId(contact.id);
-                navigate(`/contacts/${contact.id}`)
+                navigate(`/contacts/${contact.id}`);
               }}
+              onContextMenu={(e) => openContactContextMenu(e, contact)}
             >
               <img 
                 src={contact.user.photoURL} 
@@ -321,15 +421,41 @@ const Contact = () => {
                   {contact.user.displayName}
                 </h3>
                 <p>{contact.skill} {labels.exchange}</p>
-                <p 
-                  className={`last-messsage${checkMessagesSynced(contact) ? '' : '-unread'}`}>
-                    {contact.latestMessageText}
+                <p
+                  className={`last-message${checkMessagesSynced(contact) ? '' : ' last-message-unread'}`}
+                >
+                  {contact.latestMessageText}
                 </p>
               </div>
             </div>
           ))}
         </div>
-        
+        {contactContextMenu &&
+          createPortal(
+            <div
+              className="contact-list-context-menu"
+              role="menu"
+              style={{
+                position: 'fixed',
+                left: contactContextMenu.x,
+                top: contactContextMenu.y,
+                zIndex: 10000,
+              }}
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                className="contact-context-delete"
+                role="menuitem"
+                onClick={() => handleDeleteChat(contactContextMenu.contact)}
+              >
+                {labels.deleteChat}
+              </button>
+            </div>,
+            document.body
+          )}
+
         {(chatId) ? (
           <div className="chat-panel">
             <div className="chat-header">
@@ -337,7 +463,7 @@ const Contact = () => {
                 src={selectedChat?.user.photoURL} 
                 alt={selectedChat?.user.displayName} 
                 className="chat-avatar" 
-                onClick={() => window.location.href = `/profile/${selectedChat?.user.id}`}
+                onClick={(e) => openUserProfile(e, selectedChat?.user?.id)}
               />
               <div className="chat-header-info">
                 <h2
