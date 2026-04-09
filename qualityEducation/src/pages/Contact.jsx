@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useContext, useMemo } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useContext, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase/firebase';
@@ -21,6 +21,7 @@ import {
   limit,
 } from 'firebase/firestore';
 import { useParams, useNavigate } from 'react-router-dom';
+import { IoChevronBack, IoSend } from 'react-icons/io5';
 import '../pages/Login.css';
 import '../components/LoginRegister.css';
 import './Contact.css';
@@ -88,7 +89,8 @@ const Contact = () => {
   const [contactContextMenu, setContactContextMenu] = useState(null);
   const messagesAreaRef = useRef(null);
 
-  const [chatId, setChatId] = useState(useParams().chatId || null);
+  const { chatId: routeChatId } = useParams();
+  const chatId = routeChatId || null;
   const navigate = useNavigate();
 
   const [messages, setMessages] = useState([]);
@@ -108,6 +110,7 @@ const Contact = () => {
         confirmDeleteChat:
           'Delete this chat for both people? All messages will be removed. This cannot be undone.',
         deleteChatError: 'Could not delete this chat. Please try again.',
+        backToContacts: 'Back to contacts',
       }),
       []
     )
@@ -116,10 +119,18 @@ const Contact = () => {
   const { language, translateText } = useContext(TranslationContext);
 
   useEffect(() => {
-    if (messagesAreaRef.current) {
-      messagesAreaRef.current.scrollTop = messagesAreaRef.current.scrollHeight;
+    if (!routeChatId) {
+      setSelectedChat(null);
     }
-  }, [messages, messages]);
+  }, [routeChatId]);
+
+  useLayoutEffect(() => {
+    const el = messagesAreaRef.current;
+    if (!el) return;
+    if (el.scrollHeight > el.clientHeight) {
+      el.scrollTop = Math.max(0, el.scrollHeight - el.clientHeight);
+    }
+  }, [messages, chatId]);
 
 
   const getChatQuery = async (uid) => {
@@ -247,16 +258,11 @@ const Contact = () => {
       const messagesRef = collection(chatRef, 'messages');
       const q = query(messagesRef, orderBy('timestamp', 'asc'));
       const unsubscribe = onSnapshot(q, (snapshot) => {
-        const messagesData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        // WHY
-        const currentChatId = window.location.pathname.split('/').pop()
-        if (messagesData.some(msg => msg.id && msg.chatId === currentChatId)) {
-          setMessages(messagesData); 
-          setDoc(userChatRef, { 
-            latestMessageId: messagesData[messagesData.length - 1]?.id 
-          }, { merge: true });
-        } 
-        
+        const messagesData = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+        setMessages(messagesData);
+        setDoc(userChatRef, {
+          latestMessageId: messagesData[messagesData.length - 1]?.id,
+        }, { merge: true });
       });
 
       return () => unsubscribe(); // Clean up the listener on unmount
@@ -339,7 +345,6 @@ const Contact = () => {
       setContacts((prev) => prev.filter((c) => c.id !== id));
       if (id === chatId) {
         setSelectedChat(null);
-        setChatId(null);
         setMessages([]);
         navigate('/contacts');
       }
@@ -391,7 +396,7 @@ const Contact = () => {
     }
 
     return (
-      <div className="contact-container">
+      <div className={`contact-container${chatId ? ' contact-chat-open' : ''}`}>
         <div className="contacts-list">
           <div className="contacts-header">
             <h2>{labels.contactsHeading}</h2>
@@ -402,7 +407,6 @@ const Contact = () => {
               className={`contact-item ${selectedChat && selectedChat.id === contact.id ? 'active' : ''}`}
               onClick={() => {
                 setSelectedChat(contact);
-                setChatId(contact.id);
                 navigate(`/contacts/${contact.id}`);
               }}
               onContextMenu={(e) => openContactContextMenu(e, contact)}
@@ -459,20 +463,31 @@ const Contact = () => {
         {(chatId) ? (
           <div className="chat-panel">
             <div className="chat-header">
-              <img 
-                src={selectedChat?.user.photoURL} 
-                alt={selectedChat?.user.displayName} 
-                className="chat-avatar" 
-                onClick={(e) => openUserProfile(e, selectedChat?.user?.id)}
-              />
-              <div className="chat-header-info">
-                <h2
-                  className="profile-link-trigger"
+              <button
+                type="button"
+                className="contacts-chat-back"
+                onClick={() => navigate('/contacts')}
+                aria-label={labels.backToContacts}
+                title={labels.backToContacts}
+              >
+                <IoChevronBack className="contacts-chat-back-icon" aria-hidden />
+              </button>
+              <div className="chat-header-peer">
+                <img
+                  src={selectedChat?.user.photoURL}
+                  alt={selectedChat?.user.displayName}
+                  className="chat-avatar"
                   onClick={(e) => openUserProfile(e, selectedChat?.user?.id)}
-                >
-                  {selectedChat?.user.displayName}
-                </h2>
-                <p>{selectedChat?.skill} {labels.exchange}</p>
+                />
+                <div className="chat-header-info">
+                  <h2
+                    className="profile-link-trigger"
+                    onClick={(e) => openUserProfile(e, selectedChat?.user?.id)}
+                  >
+                    {selectedChat?.user.displayName}
+                  </h2>
+                  <p>{selectedChat?.skill} {labels.exchange}</p>
+                </div>
               </div>
             </div>
             <div className="chat-messages" ref={messagesAreaRef}>
@@ -486,6 +501,7 @@ const Contact = () => {
                   translateText={translateText}
                 />
               ))}
+              <div className="chat-messages-end-anchor" aria-hidden />
             </div>
             <div className="chat-input">
               <input 
@@ -496,8 +512,15 @@ const Contact = () => {
                 placeholder={labels.typeMessage}
                 className="message-input"
               />
-              <button onClick={handleSendMessage} className="send-button">
-                {labels.send}
+              <button
+                type="button"
+                onClick={handleSendMessage}
+                className="send-button"
+                disabled={!newMessage.trim()}
+                aria-label={labels.send}
+                title={labels.send}
+              >
+                <IoSend className="send-button-icon" aria-hidden />
               </button>
             </div>
           </div>
